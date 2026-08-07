@@ -30,3 +30,10 @@ function loadEnv(): Record<RequiredEnvVar, string> {
 }
 
 export const env = loadEnv();
+
+const DEFAULT_ALLOWED_ORIGINS = "http://localhost:5173";
+
+export const allowedOrigins: string[] = (process.env.ALLOWED_ORIGINS ?? DEFAULT_ALLOWED_ORIGINS)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0);

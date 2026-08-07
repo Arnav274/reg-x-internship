@@ -1,16 +1,15 @@
 import express from "express";
-import { env } from "./config/env";
+import { env, allowedOrigins } from "./config/env";
 import ticketsRoute from "./routes/tickets.route";
 
 const app = express();
 
-// Scoped to the Vite dev server's origin (not "*"), so the header is only
-// ever sent back to the frontend this project actually serves.
-const DEV_FRONTEND_ORIGIN = "http://localhost:5173";
-
+// Scoped to a configured allowlist (never "*"), so the header is only ever
+// sent back to origins this deployment actually trusts.
 app.use((req, res, next) => {
-  if (req.headers.origin === DEV_FRONTEND_ORIGIN) {
-    res.setHeader("Access-Control-Allow-Origin", DEV_FRONTEND_ORIGIN);
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
