@@ -11,6 +11,8 @@ export interface Ticket {
   product_name: string;
   category: TicketCategory;
   issue_description: string;
+  ai_suggested_category: TicketCategory | null;
+  ai_mode_enabled: boolean;
 }
 
 export interface NewTicket {
@@ -19,12 +21,14 @@ export interface NewTicket {
   product_name: string;
   category: TicketCategory;
   issue_description: string;
+  ai_suggested_category: TicketCategory | null;
+  ai_mode_enabled: boolean;
 }
 
 export async function insertTicket(ticket: NewTicket): Promise<Ticket> {
   const result = await pool.query<Ticket>(
-    `INSERT INTO tickets (username, email, product_name, category, issue_description)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO tickets (username, email, product_name, category, issue_description, ai_suggested_category, ai_mode_enabled)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       ticket.username,
@@ -32,6 +36,8 @@ export async function insertTicket(ticket: NewTicket): Promise<Ticket> {
       ticket.product_name,
       ticket.category,
       ticket.issue_description,
+      ticket.ai_suggested_category,
+      ticket.ai_mode_enabled,
     ]
   );
 

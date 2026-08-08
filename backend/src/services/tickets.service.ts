@@ -11,5 +11,7 @@ export async function createTicket(
     product_name: payload.product_name,
     category: payload.category,
     issue_description: payload.issue_description,
+    ai_suggested_category: payload.ai_suggested_category ?? null,
+    ai_mode_enabled: payload.ai_mode_enabled ?? false,
   });
 }

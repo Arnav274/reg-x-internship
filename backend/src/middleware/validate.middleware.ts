@@ -1,7 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { ALLOWED_CATEGORIES, TicketCategory } from "../db/models/ticket.model";
 
-const ALLOWED_FIELDS = ["product_name", "category", "issue_description"] as const;
+const ALLOWED_FIELDS = [
+  "product_name",
+  "category",
+  "issue_description",
+  "ai_suggested_category",
+  "ai_mode_enabled",
+] as const;
 
 const PRODUCT_NAME_MAX_LENGTH = 100;
 const ISSUE_DESCRIPTION_MAX_LENGTH = 5000;
@@ -10,6 +16,8 @@ export interface ValidatedTicketBody {
   product_name: string;
   category: TicketCategory;
   issue_description: string;
+  ai_suggested_category?: TicketCategory | null;
+  ai_mode_enabled?: boolean;
 }
 
 export function validateMiddleware(
@@ -34,7 +42,8 @@ export function validateMiddleware(
     return;
   }
 
-  const { product_name, category, issue_description } = body as Record<string, unknown>;
+  const { product_name, category, issue_description, ai_suggested_category, ai_mode_enabled } =
+    body as Record<string, unknown>;
 
   if (typeof product_name !== "string" || product_name.trim().length === 0) {
     res.status(400).json({
@@ -69,6 +78,23 @@ export function validateMiddleware(
     res.status(400).json({
       error: `issue_description must be at most ${ISSUE_DESCRIPTION_MAX_LENGTH} characters`,
     });
+    return;
+  }
+
+  if (
+    ai_suggested_category !== undefined &&
+    ai_suggested_category !== null &&
+    (typeof ai_suggested_category !== "string" ||
+      !ALLOWED_CATEGORIES.includes(ai_suggested_category as TicketCategory))
+  ) {
+    res.status(400).json({
+      error: `ai_suggested_category must be null or one of: ${ALLOWED_CATEGORIES.join(", ")}`,
+    });
+    return;
+  }
+
+  if (ai_mode_enabled !== undefined && typeof ai_mode_enabled !== "boolean") {
+    res.status(400).json({ error: "ai_mode_enabled must be a boolean" });
     return;
   }
 
