@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
+import { ALLOWED_CATEGORIES, TicketCategory } from "../db/models/ticket.model";
 
-const ALLOWED_CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
 const ALLOWED_FIELDS = ["product_name", "category", "issue_description"] as const;
 
 const PRODUCT_NAME_MAX_LENGTH = 100;
@@ -8,7 +8,7 @@ const ISSUE_DESCRIPTION_MAX_LENGTH = 5000;
 
 export interface ValidatedTicketBody {
   product_name: string;
-  category: (typeof ALLOWED_CATEGORIES)[number];
+  category: TicketCategory;
   issue_description: string;
 }
 
@@ -51,7 +51,7 @@ export function validateMiddleware(
 
   if (
     typeof category !== "string" ||
-    !ALLOWED_CATEGORIES.includes(category as (typeof ALLOWED_CATEGORIES)[number])
+    !ALLOWED_CATEGORIES.includes(category as TicketCategory)
   ) {
     res.status(400).json({
       error: `category must be one of: ${ALLOWED_CATEGORIES.join(", ")}`,

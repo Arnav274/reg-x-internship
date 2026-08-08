@@ -1,6 +1,7 @@
 import { pool } from "../index";
 
-export type TicketCategory = "High" | "Medium" | "Low" | "Suggestion" | "Request";
+export const ALLOWED_CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
+export type TicketCategory = (typeof ALLOWED_CATEGORIES)[number];
 
 export interface Ticket {
   ticket_id: string;
