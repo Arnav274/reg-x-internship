@@ -1,6 +1,7 @@
 import express from "express";
 import { env, allowedOrigins } from "./config/env";
 import ticketsRoute from "./routes/tickets.route";
+import classifyRoute from "./routes/classify.route";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/v1/tickets", ticketsRoute);
+app.use("/api/v1/tickets", classifyRoute);
 
 const port = Number(env.PORT);
 
