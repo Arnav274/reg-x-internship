@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ALLOWED_CATEGORIES, TicketCategory } from "../db/models/ticket.model";
+import { ALLOWED_PRODUCT_NAMES, ProductName } from "../config/productPages";
 
 const ALLOWED_FIELDS = [
   "product_name",
@@ -9,11 +10,10 @@ const ALLOWED_FIELDS = [
   "ai_mode_enabled",
 ] as const;
 
-const PRODUCT_NAME_MAX_LENGTH = 100;
 const ISSUE_DESCRIPTION_MAX_LENGTH = 5000;
 
 export interface ValidatedTicketBody {
-  product_name: string;
+  product_name: ProductName;
   category: TicketCategory;
   issue_description: string;
   ai_suggested_category?: TicketCategory | null;
@@ -51,9 +51,9 @@ export function validateMiddleware(
     });
     return;
   }
-  if (product_name.length > PRODUCT_NAME_MAX_LENGTH) {
+  if (!ALLOWED_PRODUCT_NAMES.includes(product_name as ProductName)) {
     res.status(400).json({
-      error: `product_name must be at most ${PRODUCT_NAME_MAX_LENGTH} characters`,
+      error: `product_name must be one of: ${ALLOWED_PRODUCT_NAMES.join(", ")}`,
     });
     return;
   }
