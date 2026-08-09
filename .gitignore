@@ -5,3 +5,4 @@ dist/
 .vscode/
 *.local.json
 .vite/
+repomix-output.*
