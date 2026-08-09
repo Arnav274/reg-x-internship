@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
-import { createTicket, TicketCategory } from "../api/ticketsApi";
+import { createTicket, PRODUCT_NAMES, TicketCategory } from "../api/ticketsApi";
 import { AiModeToggle } from "./AiModeToggle";
-
-const PRODUCT_NAMES = ["Analytics Hub", "User Portal", "Billing Engine", "Settings Suite"] as const;
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 

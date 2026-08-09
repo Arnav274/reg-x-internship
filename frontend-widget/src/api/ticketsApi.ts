@@ -3,6 +3,12 @@ const API_BASE_URL = "http://localhost:3000";
 export const CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
 export type TicketCategory = (typeof CATEGORIES)[number];
 
+// The only product list on the frontend: the manual dropdown and the page
+// detection util both read it from here. It mirrors the backend's
+// `config/productPages.ts` by hand, since the two are separate npm projects.
+export const PRODUCT_NAMES = ["Analytics Hub", "User Portal", "Billing Engine", "Settings Suite"] as const;
+export type ProductName = (typeof PRODUCT_NAMES)[number];
+
 export interface CreateTicketRequest {
   product_name: string;
   category: TicketCategory;
