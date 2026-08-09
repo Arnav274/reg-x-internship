@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
-import { createTicket, TicketCategory } from "../api/ticketsApi";
+import { CATEGORIES, createTicket, TicketCategory } from "../api/ticketsApi";
 
 const PRODUCT_NAMES = ["Analytics Hub", "User Portal", "Billing Engine", "Settings Suite"] as const;
-const CATEGORIES: TicketCategory[] = ["High", "Medium", "Low", "Suggestion", "Request"];
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 

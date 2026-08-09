@@ -1,6 +1,7 @@
 const API_BASE_URL = "http://localhost:3000";
 
-export type TicketCategory = "High" | "Medium" | "Low" | "Suggestion" | "Request";
+export const CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
+export type TicketCategory = (typeof CATEGORIES)[number];
 
 export interface CreateTicketRequest {
   product_name: string;

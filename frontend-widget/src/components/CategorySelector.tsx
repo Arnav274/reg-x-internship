@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { classifyText } from "../api/classifyApi";
-import { TicketCategory } from "../api/ticketsApi";
+import { CATEGORIES, TicketCategory } from "../api/ticketsApi";
 
-const CATEGORIES: TicketCategory[] = ["High", "Medium", "Low", "Suggestion", "Request"];
 const DEBOUNCE_MS = 500;
 
 export interface CategorySelectorProps {
