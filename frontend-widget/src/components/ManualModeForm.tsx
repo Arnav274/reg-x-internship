@@ -18,7 +18,7 @@ export function ManualModeForm({ aiModeEnabled, onAiModeChange }: ManualModeForm
   const [productName, setProductName] = useState<string>(PRODUCT_NAMES[0]);
   const [category, setCategory] = useState<TicketCategory | "">("");
   // What the AI actually proposed, kept separate from `category` so a user
-  // override doesn't erase it — that difference is the override-rate metric.
+  // override doesn't erase it, since that difference is the override-rate metric.
   const [aiSuggestedCategory, setAiSuggestedCategory] = useState<TicketCategory | null>(null);
   const [issueDescription, setIssueDescription] = useState("");
   const [status, setStatus] = useState<SubmitStatus>("idle");

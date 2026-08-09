@@ -20,7 +20,7 @@ export function AiModeToggle({
   onAiSuggestion,
 }: AiModeToggleProps) {
   // Turning AI mode off unmounts CategorySelector, which cancels a pending
-  // debounce but cannot cancel a request already in flight — that promise still
+  // debounce but cannot cancel a request already in flight, and that promise still
   // resolves and calls the onChange it captured while mounted. Reading the flag
   // from a ref at arrival time (rather than closing over it) is what lets that
   // late suggestion be discarded: the captured callback was created on a render
@@ -29,7 +29,7 @@ export function AiModeToggle({
   aiModeEnabledRef.current = aiModeEnabled;
 
   // Fires for both AI suggestions and the user's own picks, so it must not
-  // record provenance — it only propagates the value.
+  // record provenance; it only propagates the value.
   function handleValueChange(category: TicketCategory) {
     if (!aiModeEnabledRef.current) {
       return;
