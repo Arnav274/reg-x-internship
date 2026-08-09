@@ -1,16 +1,22 @@
 import { useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
-import { createTicket, PRODUCT_NAMES, TicketCategory } from "../api/ticketsApi";
+import { createTicket, PRODUCT_NAMES, ProductName, TicketCategory } from "../api/ticketsApi";
 import { AiModeToggle } from "./AiModeToggle";
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 export interface ManualModeFormProps {
+  // The page the widget was opened on, or null when it is not a product page.
+  detectedProduct: ProductName | null;
   aiModeEnabled: boolean;
   onAiModeChange: (enabled: boolean) => void;
 }
 
-export function ManualModeForm({ aiModeEnabled, onAiModeChange }: ManualModeFormProps) {
+export function ManualModeForm({
+  detectedProduct,
+  aiModeEnabled,
+  onAiModeChange,
+}: ManualModeFormProps) {
   const { username, email, token } = useAuthContext();
 
   const [productName, setProductName] = useState<string>(PRODUCT_NAMES[0]);
@@ -37,7 +43,10 @@ export function ManualModeForm({ aiModeEnabled, onAiModeChange }: ManualModeForm
     try {
       await createTicket(
         {
-          product_name: productName,
+          // A detected page always wins over the dropdown's state: product_name
+          // records where the user actually was, so it must not be overridable
+          // even if the control were somehow rendered alongside a detection.
+          product_name: detectedProduct ?? productName,
           category,
           issue_description: issueDescription,
           // AI off means the ticket took the manual path, so no suggestion is
@@ -61,18 +70,24 @@ export function ManualModeForm({ aiModeEnabled, onAiModeChange }: ManualModeForm
         Submitting as: {username} ({email})
       </p>
 
-      <label htmlFor="product-name">Product</label>
-      <select
-        id="product-name"
-        value={productName}
-        onChange={(e) => setProductName(e.target.value)}
-      >
-        {PRODUCT_NAMES.map((name) => (
-          <option key={name} value={name}>
-            {name}
-          </option>
-        ))}
-      </select>
+      {detectedProduct === null ? (
+        <>
+          <label htmlFor="product-name">Product</label>
+          <select
+            id="product-name"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+          >
+            {PRODUCT_NAMES.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : (
+        <p>Product: {detectedProduct}</p>
+      )}
 
       <AiModeToggle
         aiModeEnabled={aiModeEnabled}
