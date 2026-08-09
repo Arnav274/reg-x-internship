@@ -8,6 +8,7 @@ export interface AiModeToggleProps {
   issueDescription: string;
   value: TicketCategory | "";
   onChange: (category: TicketCategory) => void;
+  onAiSuggestion: (category: TicketCategory) => void;
 }
 
 export function AiModeToggle({
@@ -16,6 +17,7 @@ export function AiModeToggle({
   issueDescription,
   value,
   onChange,
+  onAiSuggestion,
 }: AiModeToggleProps) {
   // Turning AI mode off unmounts CategorySelector, which cancels a pending
   // debounce but cannot cancel a request already in flight — that promise still
@@ -26,11 +28,20 @@ export function AiModeToggle({
   const aiModeEnabledRef = useRef(aiModeEnabled);
   aiModeEnabledRef.current = aiModeEnabled;
 
-  function handleAiSuggestion(category: TicketCategory) {
+  // Fires for both AI suggestions and the user's own picks, so it must not
+  // record provenance — it only propagates the value.
+  function handleValueChange(category: TicketCategory) {
     if (!aiModeEnabledRef.current) {
       return;
     }
     onChange(category);
+  }
+
+  function handleAiSuggestion(category: TicketCategory) {
+    if (!aiModeEnabledRef.current) {
+      return;
+    }
+    onAiSuggestion(category);
   }
 
   return (
@@ -49,7 +60,8 @@ export function AiModeToggle({
         <CategorySelector
           issueDescription={issueDescription}
           value={value}
-          onChange={handleAiSuggestion}
+          onChange={handleValueChange}
+          onAiSuggestion={handleAiSuggestion}
         />
       ) : (
         <div>

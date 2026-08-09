@@ -7,6 +7,10 @@ export interface CreateTicketRequest {
   product_name: string;
   category: TicketCategory;
   issue_description: string;
+  // Both are required rather than optional: omission is reserved as a
+  // "pre-AI client" signal server-side, so this widget always states them.
+  ai_suggested_category: TicketCategory | null;
+  ai_mode_enabled: boolean;
 }
 
 export interface CreateTicketResponseData {
