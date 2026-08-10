@@ -29,6 +29,14 @@ function demoPageRoutes(): Plugin {
         if (DEMO_PAGE_PATHS.includes(path)) {
           req.url = `/demo${path}.html`;
         }
+        // The admin table (M6-3), served the same way and for the same reason:
+        // without an explicit route the SPA fallback answers /admin with the
+        // widget's own dev page, which looks like a working route while
+        // rendering the wrong thing. Only the exact path is rewritten, so
+        // /admin/main.tsx still resolves to the real module.
+        if (path === "/admin") {
+          req.url = "/admin/index.html";
+        }
         next();
       });
     },
