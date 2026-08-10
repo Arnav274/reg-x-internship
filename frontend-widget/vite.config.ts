@@ -1,6 +1,40 @@
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
+// The four paths fixed by the M4-1 URL contract. They are written out here
+// rather than derived from PRODUCT_NAMES or from detectProductPage.ts on
+// purpose: the demo pages implement that contract independently of the
+// detector, so that opening one proves detection works instead of proving the
+// detector agrees with itself.
+const DEMO_PAGE_PATHS = [
+  "/analytics-hub",
+  "/user-portal",
+  "/billing-engine",
+  "/settings-suite",
+];
+
+// Vite serves demo/analytics-hub.html at /demo/analytics-hub.html, but the
+// contract puts the page at /analytics-hub, so the dev server rewrites the
+// contract path onto the real file. Without this the paths would fall through
+// to the SPA fallback, which serves the widget's own dev page at every URL and
+// would make a passing detection test meaningless.
+function demoPageRoutes(): Plugin {
+  return {
+    name: "demo-page-routes",
+    configureServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        // A trailing slash names the same page in the contract, so /user-portal
+        // and /user-portal/ must not diverge here.
+        const path = (req.url ?? "").split("?")[0].replace(/\/$/, "");
+        if (DEMO_PAGE_PATHS.includes(path)) {
+          req.url = `/demo${path}.html`;
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), demoPageRoutes()],
 });
