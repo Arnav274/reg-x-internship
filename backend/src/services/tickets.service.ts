@@ -12,7 +12,7 @@ export async function createTicket(
     category: payload.category,
     issue_description: payload.issue_description,
     ai_suggested_category: payload.ai_suggested_category ?? null,
-    ai_mode_enabled: payload.ai_mode_enabled ?? false,
+    ai_mode_enabled: payload.ai_mode_enabled ?? true,
   });
 }
 

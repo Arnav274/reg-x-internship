@@ -53,7 +53,7 @@ export function CategorySelector({
 
       classifyText(issueDescription, token)
         .then((category) => {
-          if (hasManualOverrideRef.current || requestId !== requestIdRef.current) {
+          if (requestId !== requestIdRef.current) {
             return;
           }
           onAiSuggestionRef.current?.(category);
