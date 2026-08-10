@@ -19,9 +19,20 @@ export function TicketModal() {
   // effect keyed on `isOpen` fires twice per open under StrictMode.
   function handleOpen() {
     setDetectedProduct(detectProductPage());
-    // Diagnostic context only (FR1.3): dev-facing, never rendered to the user
-    // and never added to the request body.
-    console.log("[ticket-widget] environment", captureEnvironment());
+
+    // The capture itself is unconditional, in every build. FR1.3 requires the
+    // widget to query the environment automatically; it says nothing about
+    // disclosing it, so gating the call would make the requirement depend on
+    // build mode. Only the log is development-only, which is what keeps a real
+    // user's browser console from being written to with their user agent.
+    //
+    // Still diagnostic context only: never rendered to the user, and never added
+    // to the request body, which carries exactly the five allowlisted fields.
+    const environment = captureEnvironment();
+    if (import.meta.env.DEV) {
+      console.log("[ticket-widget] environment", environment);
+    }
+
     setIsOpen(true);
   }
 
