@@ -37,3 +37,9 @@ export const allowedOrigins: string[] = (process.env.ALLOWED_ORIGINS ?? DEFAULT_
   .split(",")
   .map((origin) => origin.trim())
   .filter((origin) => origin.length > 0);
+
+// Strict equality to "true" rather than a truthy check: this switch mounts a
+// route that hands out signed tokens, so anything unrecognised (unset, "1",
+// "yes", a typo) must leave it off. Failing closed is the only safe default for
+// a flag whose wrong value is an authentication bypass.
+export const devAuthEnabled: boolean = process.env.DEV_AUTH_ENABLED === "true";

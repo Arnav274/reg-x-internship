@@ -1,7 +1,8 @@
 import express from "express";
-import { env, allowedOrigins } from "./config/env";
+import { env, allowedOrigins, devAuthEnabled } from "./config/env";
 import ticketsRoute from "./routes/tickets.route";
 import classifyRoute from "./routes/classify.route";
+import devAuthRoute from "./routes/devAuth.route";
 
 const app = express();
 
@@ -29,6 +30,18 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/v1/tickets", ticketsRoute);
 app.use("/api/v1/tickets", classifyRoute);
+
+// Mounted only when explicitly enabled, so a deployment with the flag off has
+// no route to this at all and the URL 404s like any other unknown path. The
+// alternative, always mounting it and returning 403 from inside the handler,
+// would leave a live token-issuing endpoint in production whose safety rests on
+// one correct comparison inside a request handler.
+if (devAuthEnabled) {
+  console.warn(
+    "DEV_AUTH_ENABLED is true: POST /api/v1/dev/token will issue signed tokens without authentication. Never enable this in a deployed environment."
+  );
+  app.use("/api/v1/dev", devAuthRoute);
+}
 
 const port = Number(env.PORT);
 
