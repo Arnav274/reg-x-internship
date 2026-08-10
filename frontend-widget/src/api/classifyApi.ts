@@ -1,6 +1,5 @@
 import { TicketCategory } from "./ticketsApi";
-
-const API_BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "./config";
 
 export interface ClassifyRequest {
   issue_description: string;

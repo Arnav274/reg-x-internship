@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "./config";
 
 export const CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
 export type TicketCategory = (typeof CATEGORIES)[number];
