@@ -17,7 +17,9 @@ export function ManualModeForm({
   aiModeEnabled,
   onAiModeChange,
 }: ManualModeFormProps) {
-  const { username, email, token } = useAuthContext();
+  // Null until the token arrives, so every use of it below has to account for
+  // the widget not being able to submit yet.
+  const auth = useAuthContext();
 
   const [productName, setProductName] = useState<string>(PRODUCT_NAMES[0]);
   const [category, setCategory] = useState<TicketCategory | "">("");
@@ -29,12 +31,15 @@ export function ManualModeForm({
   const [errorMessage, setErrorMessage] = useState("");
 
   const isSubmitDisabled =
-    issueDescription.trim().length === 0 || category === "" || status === "submitting";
+    auth === null ||
+    issueDescription.trim().length === 0 ||
+    category === "" ||
+    status === "submitting";
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (category === "") {
-      return; // narrows the type; the submit button is disabled in this state
+    if (category === "" || auth === null) {
+      return; // narrows the types; the submit button is disabled in this state
     }
 
     setStatus("submitting");
@@ -54,7 +59,7 @@ export function ManualModeForm({
           ai_suggested_category: aiModeEnabled ? aiSuggestedCategory : null,
           ai_mode_enabled: aiModeEnabled,
         },
-        token
+        auth.token
       );
       setStatus("success");
       setIssueDescription("");
@@ -67,7 +72,9 @@ export function ManualModeForm({
   return (
     <form onSubmit={handleSubmit}>
       <p>
-        Submitting as: {username} ({email})
+        {auth === null
+          ? "Connecting to your account..."
+          : `Submitting as: ${auth.username} (${auth.email})`}
       </p>
 
       {detectedProduct === null ? (

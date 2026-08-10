@@ -20,7 +20,8 @@ export function CategorySelector({
   onChange,
   onAiSuggestion,
 }: CategorySelectorProps) {
-  const { token } = useAuthContext();
+  // Null until the token arrives; classification is skipped until then.
+  const token = useAuthContext()?.token ?? null;
   const [status, setStatus] = useState<"idle" | "loading">("idle");
 
   const hasManualOverrideRef = useRef(false);
@@ -38,10 +39,19 @@ export function CategorySelector({
     }
 
     const timer = setTimeout(() => {
+      const token = tokenRef.current;
+      if (token === null) {
+        // No token yet, so skip silently rather than sending "Bearer null" and
+        // showing a loading state for a request that would only 401. This
+        // matches how a failed classification already degrades: no suggestion,
+        // no error surfaced, the manual dropdown still works.
+        return;
+      }
+
       const requestId = ++requestIdRef.current;
       setStatus("loading");
 
-      classifyText(issueDescription, tokenRef.current)
+      classifyText(issueDescription, token)
         .then((category) => {
           if (hasManualOverrideRef.current || requestId !== requestIdRef.current) {
             return;
