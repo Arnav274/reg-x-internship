@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useAuthContext } from "../src/hooks/useAuthContext";
+import { useAuthContextState } from "../src/hooks/useAuthContext";
 import {
   CATEGORIES,
   listTickets,
@@ -25,7 +25,9 @@ function endOfDay(date: string): string {
 export function TicketsTable() {
   // Null until the dev token arrives. Every fetch below waits for it rather
   // than sending `Bearer null`, which the backend would answer with a 401.
-  const auth = useAuthContext();
+  // `authFailed` is what separates a null that is still coming from one that
+  // never will, so the wait below ends instead of running forever.
+  const { auth, failed: authFailed } = useAuthContextState();
 
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState<TicketCategory | "">("");
@@ -37,6 +39,15 @@ export function TicketsTable() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const load = useCallback(async () => {
+    if (authFailed) {
+      // Reuses the list-failure banner below rather than adding a second
+      // failure surface: from this page's side both mean the same thing, that
+      // the backend could not be reached and there is nothing to show.
+      setErrorMessage("could not authenticate with the backend");
+      setStatus("error");
+      return;
+    }
+
     if (auth === null) {
       return;
     }
@@ -62,7 +73,7 @@ export function TicketsTable() {
       setErrorMessage(err instanceof Error ? err.message : "Failed to load tickets");
       setStatus("error");
     }
-  }, [auth, productName, category, from, to]);
+  }, [auth, authFailed, productName, category, from, to]);
 
   useEffect(() => {
     void load();
@@ -73,7 +84,10 @@ export function TicketsTable() {
       <h1>Tickets</h1>
 
       {auth === null ? (
-        <p>Waiting for authentication...</p>
+        // Dropped once the request has failed, so the page is not claiming to
+        // be waiting for something that is not coming while the banner below
+        // says it already gave up.
+        !authFailed && <p>Waiting for authentication...</p>
       ) : (
         <p>
           Signed in as {auth.username} ({auth.email})

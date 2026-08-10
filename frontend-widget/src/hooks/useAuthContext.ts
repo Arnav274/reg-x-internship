@@ -25,9 +25,19 @@ const DEV_IDENTITY = {
 // across close/reopen.
 let tokenRequest: Promise<string> | null = null;
 
+// How long the token request may hang before it is abandoned. Without it a
+// backend that accepts the connection and never answers leaves every consumer
+// on null forever, which the admin table cannot tell apart from "still loading".
+// An abort rejects the fetch, so a hang arrives at the same catch below that a
+// refused connection already arrives at, and both reach the same failure state.
+const AUTH_FETCH_TIMEOUT_MS = 12_000;
+
 function requestDevToken(): Promise<string> {
   if (tokenRequest === null) {
-    tokenRequest = fetch(`${API_BASE_URL}/api/v1/dev/token`, { method: "POST" })
+    tokenRequest = fetch(`${API_BASE_URL}/api/v1/dev/token`, {
+      method: "POST",
+      signal: AbortSignal.timeout(AUTH_FETCH_TIMEOUT_MS),
+    })
       .then(async (response) => {
         if (!response.ok) {
           throw new Error(`Token request failed with status ${response.status}`);
@@ -47,8 +57,18 @@ function requestDevToken(): Promise<string> {
   return tokenRequest;
 }
 
-export function useAuthContext(): AuthContext | null {
+export interface AuthState {
+  auth: AuthContext | null;
+  // True once the token request has definitively failed, whether it was refused
+  // outright or abandoned at the timeout. Purely additive: it exists so a
+  // consumer can tell a null that is still pending from a null that never will
+  // be, and it carries no reason or message beyond that.
+  failed: boolean;
+}
+
+export function useAuthContextState(): AuthState {
   const [auth, setAuth] = useState<AuthContext | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,8 +80,12 @@ export function useAuthContext(): AuthContext | null {
         }
       })
       .catch(() => {
-        // Stay null. Consumers degrade visibly (submit disabled, no classify
-        // call) rather than sending a request the backend would reject anyway.
+        // Auth stays null, so consumers that only read it degrade exactly as
+        // they did before (submit disabled, no classify call) rather than
+        // sending a request the backend would reject anyway.
+        if (!cancelled) {
+          setFailed(true);
+        }
       });
 
     return () => {
@@ -69,5 +93,12 @@ export function useAuthContext(): AuthContext | null {
     };
   }, []);
 
-  return auth;
+  return { auth, failed };
+}
+
+// The original contract, unchanged, and still what the widget's components use.
+// They have no failure surface of their own by design (M5-2), so widening what
+// they receive would mean changing them to ignore it.
+export function useAuthContext(): AuthContext | null {
+  return useAuthContextState().auth;
 }
