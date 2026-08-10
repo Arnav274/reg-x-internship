@@ -3,6 +3,12 @@ import { pool } from "../index";
 export const ALLOWED_CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
 export type TicketCategory = (typeof ALLOWED_CATEGORIES)[number];
 
+// Owned here, alongside ALLOWED_CATEGORIES, because both describe the ticket
+// record rather than any one request path. Two endpoints accept an
+// issue_description now (create and classify) and they must agree on its
+// maximum, so the number lives in one place and is imported by both.
+export const ISSUE_DESCRIPTION_MAX_LENGTH = 5000;
+
 export interface Ticket {
   ticket_id: string;
   username: string;

@@ -5,14 +5,10 @@ export async function classifyController(
   req: Request,
   res: Response
 ): Promise<void> {
-  const { issue_description } = req.body as Record<string, unknown>;
-
-  if (typeof issue_description !== "string" || issue_description.trim().length === 0) {
-    res.status(400).json({
-      error: "issue_description is required and must be a non-empty string",
-    });
-    return;
-  }
+  // Shape and length are guaranteed by validateClassify.middleware, which runs
+  // ahead of this controller in the route chain, the same way
+  // createTicketController trusts validate.middleware.
+  const { issue_description } = req.body as { issue_description: string };
 
   const suggestedCategory = await classifyIssue(issue_description);
 

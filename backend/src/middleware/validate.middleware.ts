@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { ALLOWED_CATEGORIES, TicketCategory } from "../db/models/ticket.model";
+import {
+  ALLOWED_CATEGORIES,
+  ISSUE_DESCRIPTION_MAX_LENGTH,
+  TicketCategory,
+} from "../db/models/ticket.model";
 import { ALLOWED_PRODUCT_NAMES, ProductName } from "../config/productPages";
 
 const ALLOWED_FIELDS = [
@@ -9,8 +13,6 @@ const ALLOWED_FIELDS = [
   "ai_suggested_category",
   "ai_mode_enabled",
 ] as const;
-
-const ISSUE_DESCRIPTION_MAX_LENGTH = 5000;
 
 export interface ValidatedTicketBody {
   product_name: ProductName;
