@@ -25,6 +25,13 @@ export interface NewTicket {
   ai_mode_enabled: boolean;
 }
 
+export interface TicketFilters {
+  product_name?: string;
+  category?: TicketCategory;
+  from?: Date;
+  to?: Date;
+}
+
 export async function insertTicket(ticket: NewTicket): Promise<Ticket> {
   const result = await pool.query<Ticket>(
     `INSERT INTO tickets (username, email, product_name, category, issue_description, ai_suggested_category, ai_mode_enabled)
@@ -42,4 +49,46 @@ export async function insertTicket(ticket: NewTicket): Promise<Ticket> {
   );
 
   return result.rows[0];
+}
+
+// Only placeholders are ever assembled into the SQL text; every filter value
+// goes into the parameter array. A filter's presence changes the query, a
+// filter's value never appears in it. insertTicket could get away with one
+// static string, so this is the first query in the backend where that
+// distinction has to be made deliberately.
+export async function findTickets(filters: TicketFilters = {}): Promise<Ticket[]> {
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+
+  if (filters.product_name !== undefined) {
+    values.push(filters.product_name);
+    conditions.push(`product_name = $${values.length}`);
+  }
+  if (filters.category !== undefined) {
+    values.push(filters.category);
+    conditions.push(`category = $${values.length}`);
+  }
+  // Both bounds are inclusive, so a single day passed as from and to covers
+  // that whole day rather than an empty instant.
+  if (filters.from !== undefined) {
+    values.push(filters.from);
+    conditions.push(`datetime >= $${values.length}`);
+  }
+  if (filters.to !== undefined) {
+    values.push(filters.to);
+    conditions.push(`datetime <= $${values.length}`);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+  // No LIMIT and no pagination. At ten submissions per hour per user a full
+  // read is small, and a silent cap is worse than none on the table that exists
+  // to answer "which page produced the most High tickets" - a truncated answer
+  // there looks exactly like a correct one.
+  const result = await pool.query<Ticket>(
+    `SELECT * FROM tickets ${where} ORDER BY datetime DESC`,
+    values
+  );
+
+  return result.rows;
 }
