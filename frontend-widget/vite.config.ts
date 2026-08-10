@@ -1,4 +1,8 @@
-import { defineConfig, Plugin } from "vite";
+// defineConfig comes from vitest/config rather than vite so the `test` block
+// below is typed. It is the same function re-exported, so the dev server and
+// the production build are unaffected by the swap.
+import { defineConfig } from "vitest/config";
+import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 // The four paths fixed by the M4-1 URL contract. They are written out here
@@ -45,4 +49,10 @@ function demoPageRoutes(): Plugin {
 
 export default defineConfig({
   plugins: [react(), demoPageRoutes()],
+  test: {
+    // Component tests need a DOM. Headless only: no browser driver, so this
+    // suite runs unchanged in CI.
+    environment: "jsdom",
+    include: ["tests/**/*.test.tsx"],
+  },
 });
