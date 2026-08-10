@@ -2,7 +2,10 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { validateMiddleware } from "../middleware/validate.middleware";
 import { rateLimitMiddleware } from "../middleware/rateLimit.middleware";
-import { createTicketController } from "../controllers/tickets.controller";
+import {
+  createTicketController,
+  listTicketsController,
+} from "../controllers/tickets.controller";
 
 const router = Router();
 
@@ -18,5 +21,16 @@ router.post(
   rateLimitMiddleware,
   createTicketController
 );
+
+// Read side. Authenticated like every other protected route, and deliberately
+// NOT rate limited: the limiter counts ticket submissions, so putting it here
+// would let ten refreshes of the admin table exhaust a user's quota for
+// actually filing tickets, and its own 429 message would then be untrue.
+//
+// Any valid token reads every ticket, including other users'. That is an
+// accepted limitation rather than an oversight: the specification asks for JWT
+// verification on all endpoints and never mentions roles, so this is
+// authentication without authorization, recorded as such in docs/security.md.
+router.get("/", authMiddleware, listTicketsController);
 
 export default router;

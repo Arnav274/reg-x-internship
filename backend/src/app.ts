@@ -13,7 +13,17 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    // GET is listed because the read endpoint (M6-2) accepts it, so the header
+    // describes the API accurately. It is not what makes the browser's read
+    // work: GET is a CORS-safelisted method, so a preflight passes its method
+    // check whether or not GET appears here. Measured in M6-2 by removing it and
+    // watching a real browser succeed anyway.
+    //
+    // Authorization in Allow-Headers below IS load-bearing, and it is the reason
+    // an authenticated GET preflights at all. Removing it blocks the request in
+    // a real browser while curl, which never preflights, still gets a 200.
+    // Verified both ways rather than assumed.
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
   if (req.method === "OPTIONS") {
