@@ -3,6 +3,7 @@ import { env, allowedOrigins, devAuthEnabled } from "./config/env";
 import ticketsRoute from "./routes/tickets.route";
 import classifyRoute from "./routes/classify.route";
 import devAuthRoute from "./routes/devAuth.route";
+import { errorHandler } from "./middleware/errorHandler.middleware";
 
 const app = express();
 
@@ -42,6 +43,12 @@ if (devAuthEnabled) {
   );
   app.use("/api/v1/dev", devAuthRoute);
 }
+
+// Last in the chain, after every route, because Express only reaches an error
+// handler that is registered downstream of whatever failed. Anything thrown or
+// rejected in the routes above arrives here instead of at Express's default
+// handler, which answers a JSON API with an HTML page.
+app.use(errorHandler);
 
 const port = Number(env.PORT);
 
