@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthContextState } from "../src/hooks/useAuthContext";
 import {
   CATEGORIES,
@@ -38,6 +38,20 @@ export function TicketsTable() {
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Changing a filter starts a new request without waiting for the previous one,
+  // so two can be in flight at once and they are not guaranteed to come back in
+  // the order they were sent. Without this the last response to *resolve* would
+  // win instead of the last one *requested*, and the table would show rows that
+  // do not match the controls on screen.
+  //
+  // Same guard CategorySelector uses for the same reason (M3-8): take a ticket
+  // number before the call, and on settle only apply the result if no newer call
+  // has started since. An AbortController would also work, but it would then
+  // have to tell a deliberate abort apart from a real network failure to keep
+  // the error banner from firing on every superseded request, which is more
+  // moving parts for the same outcome.
+  const requestIdRef = useRef(0);
+
   const load = useCallback(async () => {
     if (authFailed) {
       // Reuses the list-failure banner below rather than adding a second
@@ -52,6 +66,7 @@ export function TicketsTable() {
       return;
     }
 
+    const requestId = ++requestIdRef.current;
     setStatus("loading");
     try {
       const rows = await listTickets(
@@ -63,9 +78,17 @@ export function TicketsTable() {
         },
         auth.token
       );
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       setTickets(rows);
       setStatus("ready");
     } catch (err) {
+      // Guarded too, not just the success path above: a superseded request that
+      // fails must not paint the error banner over a newer load that succeeded.
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       // Unlike CategorySelector, a failure here is shown. That component stays
       // silent because a failed AI suggestion still leaves a usable manual
       // dropdown; this page has no fallback at all, so a silent failure would
