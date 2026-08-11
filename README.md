@@ -44,6 +44,9 @@ A ticket makes this round trip:
    the row.
 5. `GET /api/v1/tickets` reads them back with optional product, category and date-range filters. The
    admin page is a thin client over that endpoint.
+6. Every ticket carries a lifecycle status of `open`, `in progress` or `resolved`, starting at `open`.
+   `PATCH /api/v1/tickets/:ticket_id/status` changes it. There is no control for this in the admin
+   page yet, so today it is an API-only capability.
 
 The username and email written to a ticket are always taken from the verified JWT, never from the
 request body, so a client cannot file a ticket as somebody else.
@@ -154,19 +157,34 @@ These are real gaps in the current state of the project, not caveats.
 
 **Migrations apply on a fresh volume only.** `docker-compose.yml` mounts `backend/src/db/migrations`
 into `/docker-entrypoint-initdb.d`, and Postgres runs the files there only on the *first*
-initialisation of an empty data directory. `001_` and `002_` therefore apply automatically on a clean
-start and never again. There is no migration runner, so adding a future `003_` will not reach an
-existing database. The only reset available today destroys the data:
+initialisation of an empty data directory. `001_`, `002_` and `003_` therefore all apply
+automatically on a clean start and never again. There is still no migration runner.
+
+On a **fresh** volume you need nothing beyond the normal start. On a volume that already exists, a
+newly added migration has to be applied by hand. `003_add_ticket_status.sql` is the first one this
+has applied to, and because the migrations directory is already mounted into the container, the file
+is there without copying anything:
+
+```sh
+docker compose exec -T db psql -U user -d tickets -f /docker-entrypoint-initdb.d/003_add_ticket_status.sql
+```
+
+On Git Bash for Windows, prefix that with `MSYS_NO_PATHCONV=1`, or the leading `/` is rewritten into
+a Windows path before Docker ever sees it and `psql` reports the file as missing.
+
+The alternative reset destroys all data:
 
 ```sh
 docker compose down -v
 docker compose up --build
 ```
 
-**Read access is authenticated but not role-based.** `GET /api/v1/tickets` requires a valid JWT and
-nothing more, so any authenticated user reads every ticket, including other users' email addresses
-and issue text. There is no admin role and no per-user filtering. The admin page is not a privileged
-surface; it is an ordinary client of that endpoint.
+**Access is authenticated but not role-based, for reads and now for writes.** `GET /api/v1/tickets`
+requires a valid JWT and nothing more, so any authenticated user reads every ticket, including other
+users' email addresses and issue text. `PATCH /api/v1/tickets/:ticket_id/status` is the same: any
+authenticated user can change the status of any ticket, and nothing records who changed it. There is
+no admin role and no per-user filtering. The admin page is not a privileged surface; it is an
+ordinary client of those endpoints.
 
 **Rate limiting is in-memory.** Submission limits are counted in the backend process, so they work
 for the single instance this project runs and nothing more. Counts reset whenever the process

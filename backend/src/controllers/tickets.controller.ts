@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { createTicket, listTickets } from "../services/tickets.service";
+import { changeTicketStatus, createTicket, listTickets } from "../services/tickets.service";
 import { ValidatedTicketBody } from "../middleware/validate.middleware";
+import { TicketIdParams, ValidatedStatusBody } from "../middleware/validateStatus.middleware";
 import { ALLOWED_CATEGORIES, TicketCategory, TicketFilters } from "../db/models/ticket.model";
 import { ALLOWED_PRODUCT_NAMES, ProductName } from "../config/productPages";
 
@@ -108,5 +109,32 @@ export async function listTicketsController(
   res.status(200).json({
     status: "success",
     data: tickets,
+  });
+}
+
+export async function updateTicketStatusController(
+  req: Request<TicketIdParams>,
+  res: Response
+): Promise<void> {
+  // Both the id's format and the body's shape are guaranteed by
+  // validateStatus.middleware, which runs ahead of this controller.
+  const { ticket_id } = req.params;
+  const { status } = req.body as ValidatedStatusBody;
+
+  const ticket = await changeTicketStatus(ticket_id, status);
+
+  // An update that matched no row must not answer 200: nothing changed, and a
+  // success here would tell a client its write landed when it did not.
+  if (ticket === null) {
+    res.status(404).json({ error: "Ticket not found" });
+    return;
+  }
+
+  // Same envelope as the list endpoint. The outer `status` is the envelope's
+  // own field and the ticket's lifecycle status is inside `data`; they collide
+  // by name only, and matching the established shape beats inventing a third.
+  res.status(200).json({
+    status: "success",
+    data: ticket,
   });
 }

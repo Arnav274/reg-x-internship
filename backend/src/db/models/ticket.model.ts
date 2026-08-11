@@ -3,6 +3,13 @@ import { pool } from "../index";
 export const ALLOWED_CATEGORIES = ["High", "Medium", "Low", "Suggestion", "Request"] as const;
 export type TicketCategory = (typeof ALLOWED_CATEGORIES)[number];
 
+// Owned here for the same reason as ALLOWED_CATEGORIES: these values describe
+// the ticket record rather than any one request path. The strings are the wire
+// format and the stored value both, matching migration 003's enum exactly, so
+// display capitalisation belongs to whatever renders them and never to storage.
+export const ALLOWED_STATUSES = ["open", "in progress", "resolved"] as const;
+export type TicketStatus = (typeof ALLOWED_STATUSES)[number];
+
 // Owned here, alongside ALLOWED_CATEGORIES, because both describe the ticket
 // record rather than any one request path. Two endpoints accept an
 // issue_description now (create and classify) and they must agree on its
@@ -19,6 +26,7 @@ export interface Ticket {
   issue_description: string;
   ai_suggested_category: TicketCategory | null;
   ai_mode_enabled: boolean;
+  status: TicketStatus;
 }
 
 export interface NewTicket {
@@ -97,4 +105,24 @@ export async function findTickets(filters: TicketFilters = {}): Promise<Ticket[]
   );
 
   return result.rows;
+}
+
+// Returns the updated row, or null when the id matched nothing, which is what
+// lets the controller answer 404 instead of a 200 that changed nothing. Both
+// values are parameters, never interpolated, so the status string reaching the
+// enum column is bounded by the middleware's check rather than by the SQL text.
+//
+// NewTicket deliberately has no status field: creation always takes the column
+// default, so 'open' is set in one place (migration 003) rather than restated
+// by every insert.
+export async function updateTicketStatus(
+  ticketId: string,
+  status: TicketStatus
+): Promise<Ticket | null> {
+  const result = await pool.query<Ticket>(
+    `UPDATE tickets SET status = $1 WHERE ticket_id = $2 RETURNING *`,
+    [status, ticketId]
+  );
+
+  return result.rows[0] ?? null;
 }
