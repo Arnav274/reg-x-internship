@@ -23,6 +23,14 @@ export function CategorySelector({
   // Null until the token arrives; classification is skipped until then.
   const token = useAuthContext()?.token ?? null;
   const [status, setStatus] = useState<"idle" | "loading">("idle");
+  // Presentational only, and deliberately separate from hasManualOverrideRef
+  // below: that ref is read at promise-arrival time to defeat stale closures,
+  // and turning it into state would change when the guard sees a write. This
+  // flag is never read by a request, a callback or the submitted payload. It
+  // exists so the control can show whose choice is currently in it, which
+  // architecture.md section 4 asks for ("treat it as a *suggestion*, not a
+  // decision").
+  const [isAiSuggested, setIsAiSuggested] = useState(false);
 
   const hasManualOverrideRef = useRef(false);
   const requestIdRef = useRef(0);
@@ -58,6 +66,7 @@ export function CategorySelector({
           }
           onAiSuggestionRef.current?.(category);
           onChangeRef.current(category);
+          setIsAiSuggested(true);
           setStatus("idle");
         })
         .catch(() => {
@@ -74,13 +83,32 @@ export function CategorySelector({
   function handleManualChange(event: React.ChangeEvent<HTMLSelectElement>) {
     hasManualOverrideRef.current = true;
     setStatus("idle");
+    setIsAiSuggested(false);
     onChange(event.target.value as TicketCategory);
   }
 
   return (
-    <div>
-      <label htmlFor="ai-category">Category</label>
-      <select id="ai-category" value={value} onChange={handleManualChange}>
+    <div className="tw-field">
+      {/*
+        The badge sits outside the <label> on purpose. Nesting it would fold its
+        text into the control's accessible name, which the suite queries by
+        exactly ("Category").
+      */}
+      <div className="tw-field__head">
+        <label className="tw-label" htmlFor="ai-category">
+          Category
+        </label>
+        {isAiSuggested && <span className="tw-badge tw-badge--ai">AI suggested</span>}
+        {status === "loading" && (
+          <span className="tw-badge tw-badge--pending">Suggesting category…</span>
+        )}
+      </div>
+      <select
+        className={isAiSuggested ? "tw-select tw-select--ai" : "tw-select"}
+        id="ai-category"
+        value={value}
+        onChange={handleManualChange}
+      >
         <option value="" disabled>
           Select a category
         </option>
@@ -90,7 +118,6 @@ export function CategorySelector({
           </option>
         ))}
       </select>
-      {status === "loading" && <p>Suggesting category…</p>}
     </div>
   );
 }

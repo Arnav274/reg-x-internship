@@ -1,0 +1,52 @@
+@import "../src/styles/tokens.css";
+
+/*
+  Chrome for the four demo host pages, so the widget is screenshotted against
+  something resembling the application it embeds into rather than against
+  browser-default Times New Roman.
+
+  Deliberately quieter than the widget itself: neutral throughout, with no
+  accent colour anywhere. The pine accent belongs to the widget, and keeping it
+  off the host is what lets the launcher read as something dropped into the
+  page rather than part of it.
+
+  Layout lives on `body` on purpose. src/index.tsx appends the widget's own
+  container as the last child of body, so putting the page's width and padding
+  here means the widget inherits them without this stylesheet ever having to
+  reach into the widget's markup.
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--tk-ground);
+}
+
+body {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--tk-6) var(--tk-5);
+  font-family: var(--tk-sans);
+  font-size: var(--tk-fs-base);
+  line-height: 1.5;
+  color: var(--tk-ink);
+  background: var(--tk-ground);
+}
+
+body > h1 {
+  margin: 0 0 var(--tk-2);
+  font-size: var(--tk-fs-lg);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+body > p {
+  margin: 0 0 var(--tk-6);
+  padding-bottom: var(--tk-5);
+  color: var(--tk-ink-2);
+  border-bottom: 1px solid var(--tk-line);
+}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import "./admin.css";
 import { useAuthContextState } from "../src/hooks/useAuthContext";
 import {
   CATEGORIES,
@@ -20,6 +21,20 @@ function startOfDay(date: string): string {
 
 function endOfDay(date: string): string {
   return `${date}T23:59:59.999Z`;
+}
+
+// One date convention for the whole console. toLocaleString() picked a format
+// per machine and rendered M/D/YYYY here, which disagreed with the date inputs
+// below on the same screen. Those inputs cannot be told what to display, since
+// that format is browser chrome driven by the OS locale, but their underlying
+// value is always YYYY-MM-DD, so the table follows the convention the controls
+// actually use. Still built from local-time parts, exactly what toLocaleString
+// was showing, so this changes the formatting and not the instant.
+function formatTimestamp(iso: string): string {
+  const at = new Date(iso);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  const date = `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
+  return `${date} ${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
 export function TicketsTable() {
@@ -103,92 +118,131 @@ export function TicketsTable() {
   }, [load]);
 
   return (
-    <main>
-      <h1>Tickets</h1>
+    <main className="ad">
+      <header className="ad-head">
+        <h1 className="ad-title">Tickets</h1>
 
-      {auth === null ? (
-        // Dropped once the request has failed, so the page is not claiming to
-        // be waiting for something that is not coming while the banner below
-        // says it already gave up.
-        !authFailed && <p>Waiting for authentication...</p>
-      ) : (
-        <p>
-          Signed in as {auth.username} ({auth.email})
+        {auth === null ? (
+          // Dropped once the request has failed, so the page is not claiming to
+          // be waiting for something that is not coming while the banner below
+          // says it already gave up.
+          !authFailed && <p className="ad-identity">Waiting for authentication...</p>
+        ) : (
+          <p className="ad-identity">
+            Signed in as {auth.username} ({auth.email})
+          </p>
+        )}
+      </header>
+
+      <section className="ad-filters">
+        <div className="ad-filter">
+          <label className="ad-label" htmlFor="filter-product">
+            Product
+          </label>
+          <select
+            className="ad-input"
+            id="filter-product"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+          >
+            <option value="">All products</option>
+            {PRODUCT_NAMES.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="ad-filter">
+          <label className="ad-label" htmlFor="filter-category">
+            Category
+          </label>
+          <select
+            className="ad-input"
+            id="filter-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value as TicketCategory | "")}
+          >
+            <option value="">All categories</option>
+            {CATEGORIES.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="ad-filter">
+          <label className="ad-label" htmlFor="filter-from">
+            From
+          </label>
+          <input
+            className="ad-input"
+            id="filter-from"
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+          />
+        </div>
+
+        <div className="ad-filter">
+          <label className="ad-label" htmlFor="filter-to">
+            To
+          </label>
+          <input
+            className="ad-input"
+            id="filter-to"
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+          />
+        </div>
+      </section>
+
+      {status === "loading" && <p className="ad-notice">Loading tickets...</p>}
+      {status === "error" && (
+        <p className="ad-notice ad-notice--error" role="alert">
+          Could not load tickets: {errorMessage}
         </p>
       )}
 
-      <section>
-        <label htmlFor="filter-product">Product</label>
-        <select
-          id="filter-product"
-          value={productName}
-          onChange={(e) => setProductName(e.target.value)}
-        >
-          <option value="">All products</option>
-          {PRODUCT_NAMES.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-
-        <label htmlFor="filter-category">Category</label>
-        <select
-          id="filter-category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value as TicketCategory | "")}
-        >
-          <option value="">All categories</option>
-          {CATEGORIES.map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-
-        <label htmlFor="filter-from">From</label>
-        <input
-          id="filter-from"
-          type="date"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-        />
-
-        <label htmlFor="filter-to">To</label>
-        <input id="filter-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-      </section>
-
-      {status === "loading" && <p>Loading tickets...</p>}
-      {status === "error" && <p role="alert">Could not load tickets: {errorMessage}</p>}
-
       {status === "ready" && (
         <>
-          <p>
+          <p className="ad-count">
             {tickets.length} ticket{tickets.length === 1 ? "" : "s"}
           </p>
 
           {tickets.length === 0 ? (
-            <p>No tickets match these filters.</p>
+            <p className="ad-notice">No tickets match these filters.</p>
           ) : (
-            <table>
+            <div className="ad-tablewrap">
+            <table className="ad-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Product</th>
-                  <th>Category</th>
-                  <th>User</th>
-                  <th>AI suggestion</th>
+                  <th className="ad-col-date">Date</th>
+                  <th className="ad-col-product">Product</th>
+                  <th className="ad-col-category">Category</th>
+                  <th className="ad-col-user">User</th>
+                  <th className="ad-col-ai">AI suggestion</th>
                   <th>Description</th>
                 </tr>
               </thead>
               <tbody>
                 {tickets.map((ticket) => (
                   <tr key={ticket.ticket_id}>
-                    <td>{new Date(ticket.datetime).toLocaleString()}</td>
+                    <td className="ad-date">{formatTimestamp(ticket.datetime)}</td>
                     <td>{ticket.product_name}</td>
-                    <td>{ticket.category}</td>
-                    <td>{ticket.username}</td>
-                    <td>{ticket.ai_mode_enabled ? (ticket.ai_suggested_category ?? "none") : "AI off"}</td>
+                    <td>
+                      {/* Severity carried by the chip's colour as well as its
+                          text, so the urgent rows separate from the rest
+                          without having to be read one by one. */}
+                      <span className={`ad-chip ad-chip--${ticket.category.toLowerCase()}`}>
+                        {ticket.category}
+                      </span>
+                    </td>
+                    <td className="ad-user">{ticket.username}</td>
+                    <td className="ad-ai">{ticket.ai_mode_enabled ? (ticket.ai_suggested_category ?? "none") : "AI off"}</td>
                     {/*
                       issue_description is stored raw and byte-identical (M5-7),
                       so this cell is where the XSS boundary actually is. It is a
@@ -199,11 +253,12 @@ export function TicketsTable() {
                       execute stored user input and would silently undo the
                       decision M5-7 made to keep bug reports intact on the way in.
                     */}
-                    <td>{ticket.issue_description}</td>
+                    <td className="ad-desc">{ticket.issue_description}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </>
       )}

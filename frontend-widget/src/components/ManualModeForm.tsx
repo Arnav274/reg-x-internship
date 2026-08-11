@@ -70,17 +70,22 @@ export function ManualModeForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <p>
+    <form className="tw-form" onSubmit={handleSubmit}>
+      <p className="tw-identity">
         {auth === null
           ? "Connecting to your account..."
           : `Submitting as: ${auth.username} (${auth.email})`}
       </p>
 
       {detectedProduct === null ? (
-        <>
-          <label htmlFor="product-name">Product</label>
+        <div className="tw-field">
+          <div className="tw-field__head">
+            <label className="tw-label" htmlFor="product-name">
+              Product
+            </label>
+          </div>
           <select
+            className="tw-select"
             id="product-name"
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
@@ -91,9 +96,14 @@ export function ManualModeForm({
               </option>
             ))}
           </select>
-        </>
+        </div>
       ) : (
-        <p>Product: {detectedProduct}</p>
+        <div className="tw-field">
+          <div className="tw-field__head">
+            <span className="tw-label">Product</span>
+          </div>
+          <p className="tw-readout">{detectedProduct}</p>
+        </div>
       )}
 
       <AiModeToggle
@@ -105,19 +115,32 @@ export function ManualModeForm({
         onAiSuggestion={setAiSuggestedCategory}
       />
 
-      <label htmlFor="issue-description">Describe the issue</label>
-      <textarea
-        id="issue-description"
-        value={issueDescription}
-        onChange={(e) => setIssueDescription(e.target.value)}
-      />
+      <div className="tw-field">
+        <div className="tw-field__head">
+          <label className="tw-label" htmlFor="issue-description">
+            Describe the issue
+          </label>
+        </div>
+        <textarea
+          className="tw-textarea"
+          id="issue-description"
+          value={issueDescription}
+          onChange={(e) => setIssueDescription(e.target.value)}
+        />
+      </div>
 
-      <button type="submit" disabled={isSubmitDisabled}>
+      <button type="submit" className="tw-submit" disabled={isSubmitDisabled}>
         Submit
       </button>
 
-      {status === "success" && <p>Ticket submitted successfully.</p>}
-      {status === "error" && <p role="alert">{errorMessage}</p>}
+      {status === "success" && (
+        <p className="tw-notice tw-notice--ok">Ticket submitted successfully.</p>
+      )}
+      {status === "error" && (
+        <p className="tw-notice tw-notice--error" role="alert">
+          {errorMessage}
+        </p>
+      )}
     </form>
   );
 }

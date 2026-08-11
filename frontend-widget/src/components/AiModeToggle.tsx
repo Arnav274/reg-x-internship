@@ -45,8 +45,8 @@ export function AiModeToggle({
   }
 
   return (
-    <div>
-      <label htmlFor="ai-mode">
+    <div className="tw-ai">
+      <label className="tw-toggle" htmlFor="ai-mode">
         <input
           id="ai-mode"
           type="checkbox"
@@ -64,9 +64,14 @@ export function AiModeToggle({
           onAiSuggestion={handleAiSuggestion}
         />
       ) : (
-        <div>
-          <label htmlFor="manual-category">Category</label>
+        <div className="tw-field">
+          <div className="tw-field__head">
+            <label className="tw-label" htmlFor="manual-category">
+              Category
+            </label>
+          </div>
           <select
+            className="tw-select"
             id="manual-category"
             value={value}
             onChange={(event) => onChange(event.target.value as TicketCategory)}

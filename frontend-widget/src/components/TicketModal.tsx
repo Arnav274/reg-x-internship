@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../styles/widget.css";
 import { ManualModeForm } from "./ManualModeForm";
 import { ProductName } from "../api/ticketsApi";
 import { detectProductPage } from "../utils/detectProductPage";
@@ -37,23 +38,43 @@ export function TicketModal() {
   }
 
   return (
-    <>
-      <button type="button" onClick={handleOpen}>
+    <div className="tw">
+      <button type="button" className="tw-launch" onClick={handleOpen}>
         Report an Issue
       </button>
 
       {isOpen && (
-        <div role="dialog" aria-modal="true">
-          <button type="button" aria-label="Close" onClick={() => setIsOpen(false)}>
-            ×
-          </button>
-          <ManualModeForm
-            detectedProduct={detectedProduct}
-            aiModeEnabled={aiModeEnabled}
-            onAiModeChange={setAiModeEnabled}
-          />
+        // The overlay is what makes the dialog read as a dialog: until now the
+        // aria-modal semantics claimed a modal while the markup rendered inline
+        // in the host page's flow, with nothing separating the two.
+        <div className="tw-overlay">
+          <div
+            className="tw-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tw-modal-title"
+          >
+            <div className="tw-modal__head">
+              <h2 className="tw-modal__title" id="tw-modal-title">
+                Report an Issue
+              </h2>
+              <button
+                type="button"
+                className="tw-modal__close"
+                aria-label="Close"
+                onClick={() => setIsOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <ManualModeForm
+              detectedProduct={detectedProduct}
+              aiModeEnabled={aiModeEnabled}
+              onAiModeChange={setAiModeEnabled}
+            />
+          </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
