@@ -5,8 +5,11 @@ export interface ClassifyRequest {
   issue_description: string;
 }
 
+// null is a real, successful answer: the AI read the description and had
+// nothing to suggest. It is not an error, and it is not the same as the 502
+// this function throws on, which means the classifier could not be reached.
 interface ClassifySuccessBody {
-  suggested_category: TicketCategory;
+  suggested_category: TicketCategory | null;
 }
 
 interface ErrorBody {
@@ -16,7 +19,7 @@ interface ErrorBody {
 export async function classifyText(
   issueDescription: string,
   token: string
-): Promise<TicketCategory> {
+): Promise<TicketCategory | null> {
   const response = await fetch(`${API_BASE_URL}/api/v1/tickets/classify`, {
     method: "POST",
     headers: {

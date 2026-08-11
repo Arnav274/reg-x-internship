@@ -64,6 +64,17 @@ export function CategorySelector({
           if (hasManualOverrideRef.current || requestId !== requestIdRef.current) {
             return;
           }
+          if (category === null) {
+            // The AI read the description and declined to suggest anything,
+            // which happens when the text is not a recognisable product issue.
+            // Deliberately indistinguishable from a failed call: clear the
+            // pending state, leave the control on its placeholder, say nothing.
+            // The user picks manually, exactly as M3-7 and M3-8 specified for
+            // the failure path, and ai_suggested_category stays null in the
+            // submitted payload.
+            setStatus("idle");
+            return;
+          }
           onAiSuggestionRef.current?.(category);
           onChangeRef.current(category);
           setIsAiSuggested(true);

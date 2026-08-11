@@ -107,4 +107,31 @@ describe("CategorySelector", () => {
 
     consoleError.mockRestore();
   });
+
+  it("leaves the category unselected when the AI declines to suggest one", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    // A resolved null, not a rejection: the call succeeded and the answer was
+    // "nothing to suggest" (M8-1). The two must look identical to the user, so
+    // this asserts the same silence the failure case above does.
+    classifyTextMock.mockResolvedValue(null);
+
+    render(<Harness description="asdfgh" />);
+
+    await waitFor(() => expect(classifyTextMock).toHaveBeenCalledTimes(1), { timeout: 3000 });
+    await waitFor(() => expect(screen.queryByText(/Suggesting category/)).toBeNull());
+
+    // The placeholder is still selected, so the user picks for themselves.
+    expect(categorySelect().value).toBe("");
+    // No AI provenance cue, because nothing came from the AI to attribute.
+    expect(screen.queryByText("AI suggested")).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/error|failed|could not/i);
+    expect(consoleError).not.toHaveBeenCalled();
+
+    // Still usable: a decline must not leave the control stuck.
+    fireEvent.change(categorySelect(), { target: { value: "Low" } });
+    expect(categorySelect().value).toBe("Low");
+
+    consoleError.mockRestore();
+  });
 });
