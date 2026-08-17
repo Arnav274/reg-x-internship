@@ -79,11 +79,13 @@ export async function classifyIssue(
         // in M8-5; the full distribution is in docs/security.md section 7.
         //
         // reasoning_effort "low" is the latency fix. This model is a reasoning
-        // model and spent most of a classification's wall clock deliberating over
-        // a five-way label choice: traces ran 105 to 2124 characters at the
-        // provider's default effort and 35 to 247 here, which roughly halves
-        // median latency. It does not make the budget safe on its own, because
-        // what remains is not deliberation - see the note on the timeout below.
+        // model and spent most of a classification deliberating over a five-way
+        // label choice: traces ran 105 to 2124 characters at the provider's
+        // default effort and 35 to 247 here, which halves the provider's own
+        // reported server time (median 198ms to 93ms) and cuts completion tokens
+        // from 118 to 39. Deliberately not stated as a wall-clock figure: the
+        // end-to-end rate improved by less than that and varies with conditions
+        // outside this code, which is what the timeout note above is about.
         reasoning_effort: "low",
         // temperature 0 is not a latency setting. It fixes a label instability
         // that predates this change and that M8-1's two-runs-per-probe sample was
