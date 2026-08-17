@@ -70,6 +70,14 @@ export function TicketsTable() {
   const [pendingStatusIds, setPendingStatusIds] = useState<ReadonlySet<string>>(new Set());
   const [statusErrorMessage, setStatusErrorMessage] = useState("");
 
+  // The control the browser should be returned to once its update settles.
+  // Disabling an element moves focus to the body and re-enabling never brings it
+  // back, so without this a keyboard user loses their place on every single
+  // change and has to tab in from the top again to triage the next row. One slot
+  // rather than one per row, because focus is singular: if a second row is
+  // changed while the first is still in flight, the second is where the user is.
+  const refocusRef = useRef<{ ticketId: string; control: HTMLSelectElement } | null>(null);
+
   // Changing a filter starts a new request without waiting for the previous one,
   // so two can be in flight at once and they are not guaranteed to come back in
   // the order they were sent. Without this the last response to *resolve* would
@@ -135,12 +143,20 @@ export function TicketsTable() {
   }, [load]);
 
   const changeStatus = useCallback(
-    async (ticketId: string, nextStatus: TicketStatus) => {
+    async (ticketId: string, nextStatus: TicketStatus, control: HTMLSelectElement) => {
       // Not a reachable failure path: a control only exists inside the ready
       // branch below, which is only rendered after a load that needed this
       // token. It is here so the token is non-null at the call.
       if (auth === null) {
         return;
+      }
+
+      // Only worth restoring if this control is where the user actually is. A
+      // change can also arrive from a pointer, and the effect below refuses to
+      // move focus that was never taken, so recording it unconditionally would
+      // be recording something that must not be acted on.
+      if (document.activeElement === control) {
+        refocusRef.current = { ticketId, control };
       }
 
       setStatusErrorMessage("");
@@ -175,6 +191,29 @@ export function TicketsTable() {
     },
     [auth]
   );
+
+  // Returns focus to the control once its own update settles. Keyed on
+  // pendingStatusIds because that set is the pending -> settled transition, and
+  // an effect is what makes this land *after* React has committed the re-enable:
+  // focus() on a still-disabled element is dropped on the floor. The same set
+  // firing on the way in is why the first guard exists - that run is the disable,
+  // not the settle.
+  useEffect(() => {
+    const target = refocusRef.current;
+    if (target === null || pendingStatusIds.has(target.ticketId)) {
+      return;
+    }
+
+    refocusRef.current = null;
+
+    // Only when the disable is still what is holding focus. If the user tabbed
+    // on to another control while the request was in flight, or the row left the
+    // table on a filter change, then taking focus back would be a worse
+    // interruption than the loss this repairs.
+    if (document.activeElement === document.body) {
+      target.control.focus();
+    }
+  }, [pendingStatusIds]);
 
   return (
     <main className="ad">
@@ -333,7 +372,11 @@ export function TicketsTable() {
                         // same row while the first is still in flight.
                         disabled={pendingStatusIds.has(ticket.ticket_id)}
                         onChange={(e) =>
-                          void changeStatus(ticket.ticket_id, e.target.value as TicketStatus)
+                          void changeStatus(
+                            ticket.ticket_id,
+                            e.target.value as TicketStatus,
+                            e.target
+                          )
                         }
                       >
                         {STATUSES.map((value) => (
