@@ -5,8 +5,11 @@ import {
   CATEGORIES,
   listTickets,
   PRODUCT_NAMES,
+  STATUSES,
   Ticket,
   TicketCategory,
+  TicketStatus,
+  updateTicketStatus,
 } from "../src/api/ticketsApi";
 
 type LoadStatus = "loading" | "ready" | "error";
@@ -37,6 +40,13 @@ function formatTimestamp(iso: string): string {
   return `${date} ${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
+// Wire values are lowercase, fixed by M8-3 as both the stored and the
+// transmitted form, so capitalisation is display only and lives here. Only the
+// first letter changes: "in progress" reads "In progress", not "In Progress".
+function formatStatus(status: TicketStatus): string {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 export function TicketsTable() {
   // Null until the dev token arrives. Every fetch below waits for it rather
   // than sending `Bearer null`, which the backend would answer with a 401.
@@ -52,6 +62,13 @@ export function TicketsTable() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Which rows have a status update in flight, held as a set of ticket ids
+  // rather than a single id because nothing stops two rows being updated at
+  // once, and one id would re-enable the first row's control the moment the
+  // second started.
+  const [pendingStatusIds, setPendingStatusIds] = useState<ReadonlySet<string>>(new Set());
+  const [statusErrorMessage, setStatusErrorMessage] = useState("");
 
   // Changing a filter starts a new request without waiting for the previous one,
   // so two can be in flight at once and they are not guaranteed to come back in
@@ -116,6 +133,48 @@ export function TicketsTable() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const changeStatus = useCallback(
+    async (ticketId: string, nextStatus: TicketStatus) => {
+      // Not a reachable failure path: a control only exists inside the ready
+      // branch below, which is only rendered after a load that needed this
+      // token. It is here so the token is non-null at the call.
+      if (auth === null) {
+        return;
+      }
+
+      setStatusErrorMessage("");
+      setPendingStatusIds((ids) => new Set(ids).add(ticketId));
+
+      try {
+        const updated = await updateTicketStatus(ticketId, nextStatus, auth.token);
+        // Keyed into whatever the table holds when the response lands, not into
+        // the array this call started from. A filter change may have replaced
+        // the list while the PATCH was in flight, and a row the new filter
+        // excludes has to stay gone rather than being resurrected by its own
+        // response. Deliberately not sequenced through requestIdRef: that
+        // counter belongs to list loads, and bumping it here would silently
+        // abandon a list request that is legitimately in flight.
+        setTickets((rows) =>
+          rows.map((row) => (row.ticket_id === updated.ticket_id ? updated : row))
+        );
+      } catch (err) {
+        // Nothing to roll back: the control reads its value from the row, and a
+        // failed update leaves that row untouched, so it already shows the real
+        // status. Shown rather than swallowed for the same reason the load
+        // banner exists - this page has no fallback, so a silent no-op looks
+        // exactly like a working update.
+        setStatusErrorMessage(err instanceof Error ? err.message : "Failed to update status");
+      } finally {
+        setPendingStatusIds((ids) => {
+          const remaining = new Set(ids);
+          remaining.delete(ticketId);
+          return remaining;
+        });
+      }
+    },
+    [auth]
+  );
 
   return (
     <main className="ad">
@@ -207,6 +266,19 @@ export function TicketsTable() {
         </p>
       )}
 
+      {/* Its own line rather than the load banner above, which cannot be reused:
+          that one renders only while status is "error", and the table renders
+          only while status is "ready", so routing an update failure through it
+          would blank the table. Page-level rather than per-row because the table
+          is fixed-layout with declared column widths, so a server message inside
+          one cell would reflow its row; the failing row identifies itself by its
+          control still showing the old value. */}
+      {statusErrorMessage !== "" && (
+        <p className="ad-notice ad-notice--error" role="alert">
+          Could not update status: {statusErrorMessage}
+        </p>
+      )}
+
       {status === "ready" && (
         <>
           <p className="ad-count">
@@ -223,6 +295,7 @@ export function TicketsTable() {
                   <th className="ad-col-date">Date</th>
                   <th className="ad-col-product">Product</th>
                   <th className="ad-col-category">Category</th>
+                  <th className="ad-col-status">Status</th>
                   <th className="ad-col-user">User</th>
                   <th className="ad-col-ai">AI suggestion</th>
                   <th>Description</th>
@@ -240,6 +313,35 @@ export function TicketsTable() {
                       <span className={`ad-chip ad-chip--${ticket.category.toLowerCase()}`}>
                         {ticket.category}
                       </span>
+                    </td>
+                    <td>
+                      {/* No status chip and no new colour: tokens.css keeps the
+                          severity hues semantic and gives the accent one job
+                          (primary action, focus, AI provenance), so a coloured
+                          status would read as a severity or as an AI suggestion.
+                          The control's presence is the affordance. */}
+                      <select
+                        className="ad-input ad-input--sm"
+                        // There is one of these per row, so "Status" alone would
+                        // announce the same name once per row. ticket_id is the
+                        // only field guaranteed unique - product and timestamp
+                        // can both repeat - so it is what names the control:
+                        // verbose, but never ambiguous.
+                        aria-label={`Status for ticket ${ticket.ticket_id}`}
+                        value={ticket.status}
+                        // So a second click cannot send a second update for the
+                        // same row while the first is still in flight.
+                        disabled={pendingStatusIds.has(ticket.ticket_id)}
+                        onChange={(e) =>
+                          void changeStatus(ticket.ticket_id, e.target.value as TicketStatus)
+                        }
+                      >
+                        {STATUSES.map((value) => (
+                          <option key={value} value={value}>
+                            {formatStatus(value)}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="ad-user">{ticket.username}</td>
                     <td className="ad-ai">{ticket.ai_mode_enabled ? (ticket.ai_suggested_category ?? "none") : "AI off"}</td>

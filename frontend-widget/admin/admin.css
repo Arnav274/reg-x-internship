@@ -103,6 +103,19 @@ body {
   outline-offset: 1px;
 }
 
+/* The in-row status control (M8-3b) is the same input as the filters above, only
+   sized to sit inside a table cell: the filter height and its 11rem minimum
+   would make every row noticeably taller than its own text. Fills its column
+   instead of setting a width, so the column stays the one place a width is
+   declared. */
+.ad-input--sm {
+  height: 1.75rem;
+  min-width: 0;
+  width: 100%;
+  font-size: var(--tk-fs-sm);
+  padding: 0 var(--tk-2);
+}
+
 /* ------------------------------------------------------------------- table */
 
 .ad-count {
@@ -125,7 +138,12 @@ body {
 
 .ad-table {
   width: 100%;
-  min-width: 60rem;
+  /* Raised from 60rem when the status column (M8-3b) added 9.5rem of declared
+     width. The five other declared columns plus status come to 54.5rem, so at
+     the old minimum Description would have been squeezed to 5.5rem before the
+     wrapper started scrolling, which is the narrowest column for the widest
+     content. */
+  min-width: 64rem;
   border-collapse: collapse;
   /* Fixed layout is what stops the browser sizing columns off content and
      leaving the dead gap that used to sit between AI suggestion and
@@ -181,6 +199,13 @@ body {
 }
 .ad-col-category {
   width: 8rem;
+}
+/* Wide enough that the longest option, "In progress", is not clipped by the
+   select's own dropdown arrow: the cell's 1rem padding each side and the arrow
+   leave the control about 2rem less than the column. Measured in a browser at
+   8rem first, which truncated it to "In progres". */
+.ad-col-status {
+  width: 9.5rem;
 }
 .ad-col-user {
   width: 8.5rem;

@@ -9,6 +9,14 @@ export type TicketCategory = (typeof CATEGORIES)[number];
 export const PRODUCT_NAMES = ["Analytics Hub", "User Portal", "Billing Engine", "Settings Suite"] as const;
 export type ProductName = (typeof PRODUCT_NAMES)[number];
 
+// The only status list on the frontend, mirroring the backend's
+// ALLOWED_STATUSES by hand for the same reason PRODUCT_NAMES mirrors
+// productPages.ts: two separate npm projects with no shared module. These are
+// the wire values, lowercase exactly as stored and transmitted; capitalising
+// them for display is the table's business and never storage's.
+export const STATUSES = ["open", "in progress", "resolved"] as const;
+export type TicketStatus = (typeof STATUSES)[number];
+
 export interface CreateTicketRequest {
   product_name: string;
   category: TicketCategory;
@@ -50,6 +58,7 @@ export interface Ticket {
   issue_description: string;
   ai_suggested_category: TicketCategory | null;
   ai_mode_enabled: boolean;
+  status: TicketStatus;
 }
 
 export interface TicketFilters {
@@ -62,6 +71,14 @@ export interface TicketFilters {
 interface ListTicketsSuccessBody {
   status: "success";
   data: Ticket[];
+}
+
+// The outer `status` is the envelope's own field and the ticket's lifecycle
+// status is inside `data`. They collide by name only, and this matches the
+// shape the endpoint actually returns.
+interface UpdateTicketStatusSuccessBody {
+  status: "success";
+  data: Ticket;
 }
 
 export async function listTickets(filters: TicketFilters, token: string): Promise<Ticket[]> {
@@ -110,4 +127,31 @@ export async function createTicket(
   }
 
   return (body as CreateTicketSuccessBody).data;
+}
+
+// Returns the updated ticket, so a caller can apply the server's row rather than
+// assuming its own value landed. Throws on any non-ok status, carrying the
+// server's `error` message, exactly as the two functions above do.
+export async function updateTicketStatus(
+  ticketId: string,
+  status: TicketStatus,
+  token: string
+): Promise<Ticket> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/tickets/${ticketId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const body = (await response.json()) as UpdateTicketStatusSuccessBody | ErrorBody;
+
+  if (!response.ok) {
+    const message = "error" in body ? body.error : `Request failed with status ${response.status}`;
+    throw new Error(message);
+  }
+
+  return (body as UpdateTicketStatusSuccessBody).data;
 }
