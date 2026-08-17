@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./admin.css";
+import { TicketSummary } from "./TicketSummary";
 import { useAuthContextState } from "../src/hooks/useAuthContext";
 import {
   CATEGORIES,
@@ -320,6 +321,14 @@ export function TicketsTable() {
 
       {status === "ready" && (
         <>
+          {/* Inside the ready branch rather than above it, even though the issue
+              places the summary "between the filters and the table". Rendering it
+              while a load is in flight would put counts on screen next to a table
+              that says "Loading tickets...", which is exactly the summary
+              disagreeing with the rows it claims to describe. Same state, same
+              branch, so the two cannot diverge. */}
+          <TicketSummary tickets={tickets} />
+
           <p className="ad-count">
             {tickets.length} ticket{tickets.length === 1 ? "" : "s"}
           </p>
@@ -387,7 +396,20 @@ export function TicketsTable() {
                       </select>
                     </td>
                     <td className="ad-user">{ticket.username}</td>
-                    <td className="ad-ai">{ticket.ai_mode_enabled ? (ticket.ai_suggested_category ?? "none") : "AI off"}</td>
+                    {/*
+                      "AI: no suggestion" describes the stored record and
+                      deliberately does not claim the AI declined. M8-1 chose not
+                      to persist a decline, and a decline records itself exactly
+                      the way a manual pick with AI mode on already does, so this
+                      cell cannot tell the two apart and must not imply it can.
+                      It replaces the previous "none", which said the same thing
+                      too quietly to read as deliberate.
+                    */}
+                    <td className="ad-ai">
+                      {ticket.ai_mode_enabled
+                        ? (ticket.ai_suggested_category ?? "AI: no suggestion")
+                        : "AI off"}
+                    </td>
                     {/*
                       issue_description is stored raw and byte-identical (M5-7),
                       so this cell is where the XSS boundary actually is. It is a

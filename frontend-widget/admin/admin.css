@@ -116,6 +116,123 @@ body {
   padding: 0 var(--tk-2);
 }
 
+/* ----------------------------------------------------------------- summary */
+
+/* Same surface treatment as the filter panel above it, so the two read as one
+   band of controls-and-context sitting over the table rather than as two
+   unrelated cards. */
+.ad-summary {
+  display: grid;
+  gap: var(--tk-4);
+  padding: var(--tk-4);
+  background: var(--tk-surface);
+  border: 1px solid var(--tk-line);
+  border-radius: var(--tk-r-lg);
+}
+
+.ad-summary-title {
+  margin: 0;
+  font-size: var(--tk-fs-md);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Side by side when there is room, stacked when there is not. auto-fit rather
+   than two fixed columns so a narrow window wraps instead of squeezing the bars
+   to a width where their lengths stop being comparable. */
+.ad-summary-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--tk-5);
+}
+
+.ad-summary-group {
+  display: grid;
+  gap: var(--tk-3);
+  align-content: start;
+}
+
+/* Matches .ad-label, since it does the same job for the group below it. */
+.ad-summary-heading {
+  margin: 0;
+  font-family: var(--tk-mono);
+  font-size: var(--tk-fs-micro);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tk-ink-2);
+}
+
+.ad-bars {
+  display: grid;
+  gap: var(--tk-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Fixed name and count columns so the bars all start and end on the same two
+   lines: bars that begin at different offsets cannot be compared by length,
+   which is the only thing they are for. */
+.ad-bar {
+  display: grid;
+  grid-template-columns: 8rem 1fr 2rem;
+  align-items: center;
+  gap: var(--tk-3);
+}
+
+.ad-bar-name {
+  font-size: var(--tk-fs-sm);
+  color: var(--tk-ink);
+}
+
+.ad-bar-track {
+  display: block;
+  width: 100%;
+  height: 8px;
+  background: var(--tk-sunken);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ad-bar-fill {
+  display: block;
+  height: 100%;
+}
+
+/* Products take one neutral: there is no semantic difference between the four,
+   and four colours would invite reading one of them as worse than the others. */
+.ad-bar-fill--product {
+  background: var(--tk-ink-2);
+}
+
+/* Categories may use the severity hues, which is what those tokens are for, so
+   the panel and the table's chips encode severity the same way. */
+.ad-bar-fill--high {
+  background: var(--tk-high-fg);
+}
+.ad-bar-fill--medium {
+  background: var(--tk-med-fg);
+}
+.ad-bar-fill--low {
+  background: var(--tk-low-fg);
+}
+
+/* Suggestion and Request are not severities, and colouring them as one would say
+   something the data does not. Neutral, exactly as their chips are. */
+.ad-bar-fill--suggestion,
+.ad-bar-fill--request {
+  background: var(--tk-ink-3);
+}
+
+.ad-bar-count {
+  font-family: var(--tk-mono);
+  font-size: var(--tk-fs-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--tk-ink);
+}
+
 /* ------------------------------------------------------------------- table */
 
 .ad-count {
@@ -138,12 +255,12 @@ body {
 
 .ad-table {
   width: 100%;
-  /* Raised from 60rem when the status column (M8-3b) added 9.5rem of declared
-     width. The five other declared columns plus status come to 54.5rem, so at
-     the old minimum Description would have been squeezed to 5.5rem before the
-     wrapper started scrolling, which is the narrowest column for the widest
-     content. */
-  min-width: 64rem;
+  /* Grown with the declared columns rather than left behind them: 60rem before
+     the status column (M8-3b) added 9.5rem, then 64rem before the AI column
+     widened by 2rem (M8-4). The six declared columns now come to 56.5rem, so
+     this leaves Description 9.5rem before the wrapper starts scrolling, which is
+     the narrowest column for the widest content. */
+  min-width: 66rem;
   border-collapse: collapse;
   /* Fixed layout is what stops the browser sizing columns off content and
      leaving the dead gap that used to sit between AI suggestion and
@@ -210,8 +327,11 @@ body {
 .ad-col-user {
   width: 8.5rem;
 }
+/* Widened from 9rem for "AI: no suggestion" (M8-4), which otherwise wrapped to
+   "AI: no / suggestion" and split one label across two lines. Measured in a
+   browser: the cell's 1rem padding each side left 9rem about 20px short. */
 .ad-col-ai {
-  width: 9rem;
+  width: 11rem;
 }
 
 .ad-date {
