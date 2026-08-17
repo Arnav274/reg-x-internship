@@ -1,7 +1,19 @@
 import { aiProvider } from "../config/aiProvider";
 import { ALLOWED_CATEGORIES, TicketCategory } from "../db/models/ticket.model";
 
-const TIMEOUT_MS = 800; // matches FR2.3's classification round-trip budget
+// Matches FR2.3's classification round-trip budget. Kept at 800ms rather than
+// raised: the number is the specification's, and changing a stated NFR because
+// the implementation misses it is the mentor's call, not this issue's (M8-5).
+//
+// It is still exceeded sometimes, and after M8-5 the reason is no longer the
+// model. With reasoning constrained and temperature at 0 the generation work is
+// near-constant - the same probe returns an identical-length trace every call -
+// yet the same probe measured 405ms, 810ms and 2196ms across three runs. The
+// residual spread is the provider's queueing and the network: during M8-5 a
+// request that did no inference at all (a 404 for an unavailable model) took
+// 920ms on one call. No model or prompt choice can bring that inside 800ms, so
+// the widget's silent fallback stays the thing that makes this acceptable.
+const TIMEOUT_MS = 800;
 
 // Returned when the model read the text and had nothing to suggest, as opposed
 // to null, which continues to mean the call failed.
@@ -63,6 +75,25 @@ export async function classifyIssue(
       },
       body: JSON.stringify({
         model: aiProvider.model,
+        // Neither of these changes what the categories mean. Both were measured
+        // in M8-5; the full distribution is in docs/security.md section 7.
+        //
+        // reasoning_effort "low" is the latency fix. This model is a reasoning
+        // model and spent most of a classification's wall clock deliberating over
+        // a five-way label choice: traces ran 105 to 2124 characters at the
+        // provider's default effort and 35 to 247 here, which roughly halves
+        // median latency. It does not make the budget safe on its own, because
+        // what remains is not deliberation - see the note on the timeout below.
+        reasoning_effort: "low",
+        // temperature 0 is not a latency setting. It fixes a label instability
+        // that predates this change and that M8-1's two-runs-per-probe sample was
+        // too small to see: at the provider's default of 1.0 the criteria table's
+        // High probe ("500 error when clicking Export Report") came back Medium
+        // on 2 of 8 runs, at default effort and at low effort alike. At 0 it is 8
+        // of 8, and the full ten-probe regression set is 30 of 30. A fixed
+        // five-way label choice has no use for sampling variance, and a severity
+        // that flips between identical calls is worse than a slow one.
+        temperature: 0,
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: `<issue_description>${issueDescription}</issue_description>` },
