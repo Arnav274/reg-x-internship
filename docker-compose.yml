@@ -11,7 +11,7 @@ services:
       # data directory, so 001_ then 002_ apply automatically on a fresh volume.
       - ./backend/src/db/migrations:/docker-entrypoint-initdb.d:ro
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   backend:
     build:
