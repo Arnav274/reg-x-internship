@@ -8,11 +8,11 @@ export interface AuthContext {
 }
 
 // Stands in for the host application's auth state. The identity is mirrored by
-// hand from the fixed identity M5-1's dev endpoint signs into the token, the
-// same way PRODUCT_NAMES mirrors the backend's productPages.ts. Only the token
-// is fetched, because it is the only part the backend actually verifies: a
-// placeholder string is rejected by auth.middleware with 401, which is why this
-// hook can no longer answer synchronously.
+// hand from the fixed identity the backend's dev endpoint signs into the token,
+// the same way PRODUCT_NAMES mirrors the backend's productPages.ts. Only the
+// token is fetched, because it is the only part the backend actually verifies:
+// a placeholder string is rejected by auth.middleware with 401, which is why
+// this hook can no longer answer synchronously.
 const DEV_IDENTITY = {
   username: "johndoe",
   email: "johndoe@example.com",
@@ -97,7 +97,7 @@ export function useAuthContextState(): AuthState {
 }
 
 // The original contract, unchanged, and still what the widget's components use.
-// They have no failure surface of their own by design (M5-2), so widening what
+// They have no failure surface of their own by design, so widening what
 // they receive would mean changing them to ignore it.
 export function useAuthContext(): AuthContext | null {
   return useAuthContextState().auth;

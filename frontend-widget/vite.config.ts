@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
-// The four paths fixed by the M4-1 URL contract. They are written out here
+// The four paths fixed by the URL contract. They are written out here
 // rather than derived from PRODUCT_NAMES or from detectProductPage.ts on
 // purpose: the demo pages implement that contract independently of the
 // detector, so that opening one proves detection works instead of proving the
@@ -33,7 +33,7 @@ function demoPageRoutes(): Plugin {
         if (DEMO_PAGE_PATHS.includes(path)) {
           req.url = `/demo${path}.html`;
         }
-        // The admin table (M6-3), served the same way and for the same reason:
+        // The admin table, served the same way and for the same reason:
         // without an explicit route the SPA fallback answers /admin with the
         // widget's own dev page, which looks like a working route while
         // rendering the wrong thing. Only the exact path is rewritten, so

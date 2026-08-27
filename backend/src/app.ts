@@ -13,13 +13,13 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    // GET is listed because the read endpoint (M6-2) accepts it, so the header
+    // GET is listed because the read endpoint accepts it, so the header
     // describes the API accurately. It is not what makes the browser's read
     // work: GET is a CORS-safelisted method, so a preflight passes its method
-    // check whether or not GET appears here. Measured in M6-2 by removing it and
+    // check whether or not GET appears here. Measured by removing it and
     // watching a real browser succeed anyway.
     //
-    // PATCH (M8-3) is the opposite case and the distinction matters: it is NOT
+    // PATCH is the opposite case and the distinction matters: it is NOT
     // a safelisted method, so for the status endpoint this list IS load-bearing.
     // Remove PATCH and curl still succeeds, because curl never preflights, while
     // every real browser fails the preflight before the request is ever sent.

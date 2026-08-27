@@ -84,7 +84,7 @@ export function validateMiddleware(
   }
   // Postgres TEXT cannot hold a null byte, so one reaching the insert fails the
   // query and surfaces as a 500 for what is really bad input. Rejected here so
-  // it returns 400 instead, per the milestone's own exit criteria.
+  // it returns 400 instead.
   //
   // Only the null byte. Other C0 controls were measured storing and reading back
   // without complaint, so rejecting the whole range would be guarding against a

@@ -6,8 +6,8 @@ import type { Ticket } from "../src/api/ticketsApi";
 import type { AuthContext } from "../src/hooks/useAuthContext";
 
 // Mocked at the api-module boundary rather than at global fetch: that module is
-// the seam the component is written against, and its own behaviour was verified
-// in M3-7 and M5-2. Partial, because ticketsApi is also where PRODUCT_NAMES and
+// the seam the component is written against, and its own behaviour is verified
+// separately. Partial, because ticketsApi is also where PRODUCT_NAMES and
 // CATEGORIES live, and blanking those would empty the dropdowns this file is
 // supposed to be asserting on.
 vi.mock("../src/api/ticketsApi", async (importOriginal) => ({
@@ -16,7 +16,7 @@ vi.mock("../src/api/ticketsApi", async (importOriginal) => ({
 }));
 
 // Read through a mutable variable so a test can move the hook from "no token
-// yet" to "token arrived" between renders, which is the transition M5-2's
+// yet" to "token arrived" between renders, which is the transition the
 // disabled-submit rule is about.
 let currentAuth: AuthContext | null = null;
 vi.mock("../src/hooks/useAuthContext", () => ({

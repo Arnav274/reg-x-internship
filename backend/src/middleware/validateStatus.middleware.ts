@@ -6,8 +6,8 @@ import { ALLOWED_STATUSES, TicketStatus } from "../db/models/ticket.model";
 // function serve two endpoints with different rules.
 //
 // Unlike the classify path, this one writes to the database, so the create
-// path's unexpected-field allowlist is mirrored here rather than skipped. M7-1
-// omitted it on classify specifically because nothing there is stored and a
+// path's unexpected-field allowlist is mirrored here rather than skipped. It
+// was left off classify specifically because nothing there is stored and a
 // stray field therefore has no row to corrupt; that argument does not apply.
 const ALLOWED_FIELDS = ["status"] as const;
 
@@ -16,7 +16,7 @@ const ALLOWED_FIELDS = ["status"] as const;
 // that whatever reaches it cannot throw: a malformed id makes Postgres raise
 // `invalid input syntax for type uuid`, which reaches errorHandler and returns a
 // generic 500 for what is plainly the caller's mistake. That exact failure shape
-// was measured on query parameters during M6-1.
+// was measured directly on query parameters.
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface ValidatedStatusBody {

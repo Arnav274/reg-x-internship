@@ -6,7 +6,7 @@ import { classifyText } from "../src/api/classifyApi";
 import type { TicketCategory } from "../src/api/ticketsApi";
 
 // Mocked at the api-module boundary, as with the submit flow. classifyApi's own
-// behaviour was verified in M3-7.
+// behaviour is verified separately.
 vi.mock("../src/api/classifyApi", () => ({ classifyText: vi.fn() }));
 
 vi.mock("../src/hooks/useAuthContext", () => ({
@@ -55,8 +55,9 @@ describe("CategorySelector", () => {
     const select = categorySelect();
     expect(select.disabled).toBe(false);
 
-    // Still editable after the suggestion landed, which is the half of FR3 that
-    // a read-only pre-filled control would silently break.
+    // Still editable after the suggestion landed: an AI suggestion has to stay
+    // a starting point the user can override, not a locked-in answer, which a
+    // read-only pre-filled control would silently break.
     fireEvent.change(select, { target: { value: "Low" } });
     expect(categorySelect().value).toBe("Low");
   });
@@ -98,7 +99,7 @@ describe("CategorySelector", () => {
     // The value the user already had is untouched.
     expect(categorySelect().value).toBe("Medium");
     // No error surface of any kind: the manual dropdown is still usable, so a
-    // failed suggestion is not something to tell the user about (M3-7, M3-8).
+    // failed suggestion is not something to tell the user about.
     expect(screen.queryByRole("alert")).toBeNull();
     expect(document.body.textContent).not.toMatch(/error|failed|could not/i);
     // Asserted explicitly, because a component that logged to the console while
@@ -111,7 +112,7 @@ describe("CategorySelector", () => {
   it("leaves the category unselected when the AI declines to suggest one", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     // A resolved null, not a rejection: the call succeeded and the answer was
-    // "nothing to suggest" (M8-1). The two must look identical to the user, so
+    // "nothing to suggest". The two must look identical to the user, so
     // this asserts the same silence the failure case above does.
     classifyTextMock.mockResolvedValue(null);
 

@@ -12,8 +12,8 @@
   Deliberately quieter than the widget itself: neutral throughout, with no
   accent colour anywhere. The pine accent belongs to the widget, and keeping it
   off the host is what lets the launcher read as something dropped into the page
-  rather than part of it. That decision is inherited from M7-4 and is the reason
-  the nav, the cards and the tables are all built from the neutral ramp.
+  rather than part of it. That decision carries through here too, and is the
+  reason the nav, the cards and the tables are all built from the neutral ramp.
 
   Class prefix is `hp-` (host page), matching the widget's `tw-` and the admin
   console's `ad-`. The page's own chrome uses semantic elements (nav, main,

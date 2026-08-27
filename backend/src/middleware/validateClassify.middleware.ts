@@ -3,18 +3,19 @@ import { ISSUE_DESCRIPTION_MAX_LENGTH } from "../db/models/ticket.model";
 
 // Separate from validate.middleware.ts, which validates the create body against
 // its five-field contract. Teaching that function a second contract would make
-// one file serve two endpoints, which M6-2 already declined to do for the read
-// path's query parameters.
+// one file serve two endpoints, the same reasoning that keeps the read path's
+// query-parameter parsing out of it too.
 //
 // Middleware rather than a helper the controller calls, because it has to run
 // before the rate limiter: a request rejected as too long never became a
-// suggestion request, so it must not spend the user's quota (M5-5's ordering
-// argument, applied to this chain).
+// suggestion request, so it must not spend the user's quota, the same ordering
+// argument that governs the create chain.
 //
 // Only the length and the type are checked here. The create path's
 // unexpected-field allowlist and its null-byte rejection are deliberately not
 // mirrored: nothing on this path is stored, so a null byte has no database to
-// break, and the allowlist is a separate decision this issue does not make.
+// break, and the allowlist is a separate decision that was never made for this
+// endpoint.
 export function validateClassifyMiddleware(
   req: Request,
   res: Response,

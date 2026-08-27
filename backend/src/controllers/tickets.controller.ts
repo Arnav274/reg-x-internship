@@ -9,7 +9,7 @@ export async function createTicketController(
   req: Request,
   res: Response
 ): Promise<void> {
-  // auth.middleware always runs before this controller (wired in M1-7),
+  // auth.middleware always runs before this controller,
   // so identity is guaranteed to be set by the time we get here.
   const identity = req.identity!;
   const payload = req.body as ValidatedTicketBody;
@@ -41,7 +41,8 @@ const ALLOWED_QUERY_PARAMS = ["product_name", "category", "from", "to"] as const
 // Postgres ENUM, so a bad value is rejected by the database rather than simply
 // matching nothing, and that throw would reach `errorHandler` and come back as a
 // generic "Internal server error" - a 500 for what is plainly the caller's
-// mistake. Measured during M6-1.
+// mistake. Measured directly, by sending a bad value and confirming it lands as
+// a 500.
 function parseFilters(query: Record<string, unknown>): TicketFilters | string {
   const unexpected = Object.keys(query).filter(
     (key) => !ALLOWED_QUERY_PARAMS.includes(key as (typeof ALLOWED_QUERY_PARAMS)[number])

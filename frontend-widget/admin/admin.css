@@ -103,7 +103,7 @@ body {
   outline-offset: 1px;
 }
 
-/* The in-row status control (M8-3b) is the same input as the filters above, only
+/* The in-row status control is the same input as the filters above, only
    sized to sit inside a table cell: the filter height and its 11rem minimum
    would make every row noticeably taller than its own text. Fills its column
    instead of setting a width, so the column stays the one place a width is
@@ -256,10 +256,10 @@ body {
 .ad-table {
   width: 100%;
   /* Grown with the declared columns rather than left behind them: 60rem before
-     the status column (M8-3b) added 9.5rem, then 64rem before the AI column
-     widened by 2rem (M8-4). The six declared columns now come to 56.5rem, so
-     this leaves Description 9.5rem before the wrapper starts scrolling, which is
-     the narrowest column for the widest content. */
+     the status column added 9.5rem, then 64rem before the AI column widened by
+     2rem. The six declared columns now come to 56.5rem, so this leaves
+     Description 9.5rem before the wrapper starts scrolling, which is the
+     narrowest column for the widest content. */
   min-width: 66rem;
   border-collapse: collapse;
   /* Fixed layout is what stops the browser sizing columns off content and
@@ -327,7 +327,7 @@ body {
 .ad-col-user {
   width: 8.5rem;
 }
-/* Widened from 9rem for "AI: no suggestion" (M8-4), which otherwise wrapped to
+/* Widened from 9rem for "AI: no suggestion", which otherwise wrapped to
    "AI: no / suggestion" and split one label across two lines. Measured in a
    browser: the cell's 1rem padding each side left 9rem about 20px short. */
 .ad-col-ai {

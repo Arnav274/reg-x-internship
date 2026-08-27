@@ -27,9 +27,9 @@ export function CategorySelector({
   // below: that ref is read at promise-arrival time to defeat stale closures,
   // and turning it into state would change when the guard sees a write. This
   // flag is never read by a request, a callback or the submitted payload. It
-  // exists so the control can show whose choice is currently in it, which
-  // architecture.md section 4 asks for ("treat it as a *suggestion*, not a
-  // decision").
+  // exists so the control can show whose choice is currently in it: an AI
+  // suggestion should read as a suggestion, not a decision already made for
+  // the user.
   const [isAiSuggested, setIsAiSuggested] = useState(false);
 
   const hasManualOverrideRef = useRef(false);
@@ -69,8 +69,8 @@ export function CategorySelector({
             // which happens when the text is not a recognisable product issue.
             // Deliberately indistinguishable from a failed call: clear the
             // pending state, leave the control on its placeholder, say nothing.
-            // The user picks manually, exactly as M3-7 and M3-8 specified for
-            // the failure path, and ai_suggested_category stays null in the
+            // The user picks manually, the same fallback behavior as the
+            // failure path, and ai_suggested_category stays null in the
             // submitted payload.
             setStatus("idle");
             return;

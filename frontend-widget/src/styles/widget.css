@@ -4,9 +4,9 @@
   Every rule in this file is scoped under `.tw`.
 
   The widget is an isolated embeddable component that drops into four host
-  pages it does not own (architecture.md, section 5). A single bare element or
-  `body` selector here would repaint the page around it, so there are none:
-  the widget styles itself and nothing else.
+  pages it does not own. A single bare element or `body` selector here would
+  repaint the page around it, so there are none: the widget styles itself and
+  nothing else.
 */
 
 .tw {
@@ -219,10 +219,10 @@
 /* ------------------------------------------------------------ AI provenance */
 
 /*
-  architecture.md section 4 asks that the UI treat the classification as a
-  suggestion rather than a decision. Two cues, one signal: the badge names the
-  source, and the rail on the control marks which value it applies to. Both are
-  cleared the moment the user picks for themselves.
+  An AI suggestion should read as a suggestion, not a decision already made for
+  the user. Two cues, one signal: the badge names the source, and the rail on
+  the control marks which value it applies to. Both are cleared the moment the
+  user picks for themselves.
 */
 .tw-badge {
   font-family: var(--tk-mono);

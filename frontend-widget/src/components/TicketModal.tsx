@@ -9,7 +9,7 @@ export function TicketModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [detectedProduct, setDetectedProduct] = useState<ProductName | null>(null);
   // Deliberately outside the isOpen subtree: closing unmounts the form, which
-  // is what discards its content (M2-5), but AI mode is a user preference
+  // is what discards its content, but AI mode is a user preference
   // rather than form content, so it survives close/reopen for this session.
   const [aiModeEnabled, setAiModeEnabled] = useState(true);
 
@@ -21,11 +21,11 @@ export function TicketModal() {
   function handleOpen() {
     setDetectedProduct(detectProductPage());
 
-    // The capture itself is unconditional, in every build. FR1.3 requires the
-    // widget to query the environment automatically; it says nothing about
-    // disclosing it, so gating the call would make the requirement depend on
-    // build mode. Only the log is development-only, which is what keeps a real
-    // user's browser console from being written to with their user agent.
+    // The capture itself is unconditional, in every build. The widget is
+    // required to query the environment automatically; nothing says it must
+    // also be disclosed, so gating the call would make the requirement depend
+    // on build mode. Only the log is development-only, which is what keeps a
+    // real user's browser console from being written to with their user agent.
     //
     // Still diagnostic context only: never rendered to the user, and never added
     // to the request body, which carries exactly the five allowlisted fields.

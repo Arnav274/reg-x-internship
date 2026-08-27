@@ -1,10 +1,9 @@
 import { PRODUCT_NAMES, ProductName } from "../api/ticketsApi";
 
 /**
- * Maps the page the widget is embedded on to its product name, implementing the
- * URL contract fixed in M4-1: the first path segment is the product's slug, so
- * `/analytics-hub`, `/analytics-hub/` and `/analytics-hub/reports/42` all mean
- * the Analytics Hub page.
+ * Maps the page the widget is embedded on to its product name: the first path
+ * segment is the product's slug, so `/analytics-hub`, `/analytics-hub/` and
+ * `/analytics-hub/reports/42` all mean the Analytics Hub page.
  *
  * Slugs are derived from `PRODUCT_NAMES` rather than listed again, so the
  * mapping cannot drift from the one frontend product list. Returns `null` for

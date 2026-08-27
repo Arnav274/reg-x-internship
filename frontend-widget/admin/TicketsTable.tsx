@@ -18,7 +18,7 @@ type LoadStatus = "loading" | "ready" | "error";
 // A date input gives "YYYY-MM-DD". Sent as-is, a `to` of today would mean
 // midnight and exclude everything filed during the day it names, so each bound
 // is widened to the edge of the day the user picked. Both ends of the range are
-// inclusive server-side (M6-1), so this makes one date cover that whole day.
+// inclusive server-side, so this makes one date cover that whole day.
 function startOfDay(date: string): string {
   return `${date}T00:00:00.000Z`;
 }
@@ -41,9 +41,9 @@ function formatTimestamp(iso: string): string {
   return `${date} ${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
-// Wire values are lowercase, fixed by M8-3 as both the stored and the
-// transmitted form, so capitalisation is display only and lives here. Only the
-// first letter changes: "in progress" reads "In progress", not "In Progress".
+// Wire values are lowercase, both stored and transmitted that way, so
+// capitalisation is display only and lives here. Only the first letter
+// changes: "in progress" reads "In progress", not "In Progress".
 function formatStatus(status: TicketStatus): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
@@ -85,7 +85,7 @@ export function TicketsTable() {
   // win instead of the last one *requested*, and the table would show rows that
   // do not match the controls on screen.
   //
-  // Same guard CategorySelector uses for the same reason (M3-8): take a ticket
+  // Same guard CategorySelector uses for the same reason: take a ticket
   // number before the call, and on settle only apply the result if no newer call
   // has started since. An AbortController would also work, but it would then
   // have to tell a deliberate abort apart from a real network failure to keep
@@ -398,8 +398,8 @@ export function TicketsTable() {
                     <td className="ad-user">{ticket.username}</td>
                     {/*
                       "AI: no suggestion" describes the stored record and
-                      deliberately does not claim the AI declined. M8-1 chose not
-                      to persist a decline, and a decline records itself exactly
+                      deliberately does not claim the AI declined. A decline is
+                      never persisted as such, and it records itself exactly
                       the way a manual pick with AI mode on already does, so this
                       cell cannot tell the two apart and must not imply it can.
                       It replaces the previous "none", which said the same thing
@@ -411,14 +411,14 @@ export function TicketsTable() {
                         : "AI off"}
                     </td>
                     {/*
-                      issue_description is stored raw and byte-identical (M5-7),
+                      issue_description is stored raw and byte-identical,
                       so this cell is where the XSS boundary actually is. It is a
                       JSX expression child, which React renders as a text node,
                       so markup in the stored text is displayed rather than
                       parsed. Never render this through dangerouslySetInnerHTML,
                       innerHTML, or any HTML-rendering library: doing so would
                       execute stored user input and would silently undo the
-                      decision M5-7 made to keep bug reports intact on the way in.
+                      decision to keep bug reports intact on the way in.
                     */}
                     <td className="ad-desc">{ticket.issue_description}</td>
                   </tr>

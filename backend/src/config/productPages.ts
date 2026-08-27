@@ -2,7 +2,7 @@
 // authority for validating `product_name`; nothing else should re-declare it.
 //
 // The URL -> product_name mapping the widget detects against (path-based, first
-// path segment) is fixed in the M4-1 issue and implemented separately by
+// path segment) is implemented separately in
 // `frontend-widget/src/utils/detectProductPage.ts`. The frontend is its own npm
 // project and cannot import from here, so that list is a deliberate mirror and
 // must be kept in sync with this one by hand.

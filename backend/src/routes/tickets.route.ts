@@ -32,7 +32,7 @@ router.post(
 // Any valid token reads every ticket, including other users'. That is an
 // accepted limitation rather than an oversight: the specification asks for JWT
 // verification on all endpoints and never mentions roles, so this is
-// authentication without authorization, recorded as such in docs/security.md.
+// authentication without authorization.
 router.get("/", authMiddleware, listTicketsController);
 
 // Status changes. PATCH rather than POST because this is a partial update to an
@@ -42,14 +42,14 @@ router.get("/", authMiddleware, listTicketsController);
 //
 // Deliberately NOT rate limited, and that is a decision rather than an omission.
 // The 10/hour bucket counts ticket submissions and its own 429 message says so,
-// which is why M6-2 kept it off the read path; this endpoint creates no ticket.
+// which is why it stays off the read path too; this endpoint creates no ticket.
 // The separate classify bucket exists because that path spends provider money
 // per call, while this one costs a single UPDATE.
 //
 // Authorization is the same as everywhere else in this API, which is to say
 // none: any valid token may change any ticket's status, including another
-// user's. Recorded as a known limitation in docs/security.md rather than
-// silently accepted here.
+// user's. That is an acknowledged limitation, not something that slipped
+// through unnoticed.
 router.patch(
   "/:ticket_id/status",
   authMiddleware,

@@ -1,7 +1,7 @@
--- Ticket lifecycle status. architecture.md section 7 deliberately left this out
--- of the original schema ("I'd deliberately not add a status (open/closed) field
--- yet ... that's a clean, additive migration later"), so this is that later
--- addition on the terms the design already anticipated, not a correction to it.
+-- Ticket lifecycle status. The original schema deliberately left this out
+-- ("I'd deliberately not add a status (open/closed) field yet ... that's a
+-- clean, additive migration later"), so this is that later addition on the
+-- terms the design already anticipated, not a correction to it.
 --
 -- An enum rather than VARCHAR + CHECK because ticket_category on this same table
 -- is already an enum, and one table using two conventions for the same kind of

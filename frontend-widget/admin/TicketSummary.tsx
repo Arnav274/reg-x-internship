@@ -1,8 +1,8 @@
 import { CATEGORIES, PRODUCT_NAMES, Ticket } from "../src/api/ticketsApi";
 
 // Counted here in the browser, from the rows the page already holds. There is no
-// aggregate endpoint on purpose: findTickets() has no LIMIT and no pagination
-// (M6-1 records why), so every row a GROUP BY would visit is already in memory
+// aggregate endpoint on purpose: findTickets() has no LIMIT and no pagination,
+// so every row a GROUP BY would visit is already in memory
 // before this component renders, and a server-side version would need a model
 // function, a service, a controller, a route, a client function and a second
 // implementation of the filter semantics to recompute numbers that are already

@@ -1,18 +1,19 @@
 import { aiProvider } from "../config/aiProvider";
 import { ALLOWED_CATEGORIES, TicketCategory } from "../db/models/ticket.model";
 
-// Matches FR2.3's classification round-trip budget. Kept at 800ms rather than
-// raised: the number is the specification's, and changing a stated NFR because
-// the implementation misses it is the mentor's call, not this issue's (M8-5).
+// Matches the classification round-trip budget the spec sets: 800ms. Kept
+// there rather than raised: the number is the specification's, and changing a
+// stated requirement because the implementation misses it is the mentor's
+// call, not something to decide unilaterally here.
 //
-// It is still exceeded sometimes, and after M8-5 the reason is no longer the
-// model. With reasoning constrained and temperature at 0 the generation work is
+// It is still exceeded sometimes, and the reason is no longer the model. With
+// reasoning constrained and temperature at 0 the generation work is
 // near-constant - the same probe returns an identical-length trace every call -
 // yet the same probe measured 405ms, 810ms and 2196ms across three runs. The
-// residual spread is the provider's queueing and the network: during M8-5 a
-// request that did no inference at all (a 404 for an unavailable model) took
-// 920ms on one call. No model or prompt choice can bring that inside 800ms, so
-// the widget's silent fallback stays the thing that makes this acceptable.
+// residual spread is the provider's queueing and the network: a request that
+// did no inference at all (a 404 for an unavailable model) took 920ms on one
+// call. No model or prompt choice can bring that inside 800ms, so the widget's
+// silent fallback stays the thing that makes this acceptable.
 const TIMEOUT_MS = 800;
 
 // Returned when the model read the text and had nothing to suggest, as opposed
@@ -30,7 +31,7 @@ export const NO_SUGGESTION = "None";
 // Wording tracks the mentor's criteria table directly. An earlier paraphrase put
 // "low-impact bugs" under Low while Medium said "non-blocking bugs"; those name
 // the same reports, Low won, and Medium became unreachable - measured at 0 out of
-// 8 probes across two phrasings before this was corrected (M7-3). Any future edit
+// 8 probes across two phrasings before the wording was corrected. Any future edit
 // here has to keep each category's territory disjoint from its neighbours', or
 // the same collapse recurs silently: nothing fails, one label simply stops
 // appearing.
@@ -76,7 +77,7 @@ export async function classifyIssue(
       body: JSON.stringify({
         model: aiProvider.model,
         // Neither of these changes what the categories mean. Both were measured
-        // in M8-5; the full distribution is in docs/security.md section 7.
+        // directly, not assumed.
         //
         // reasoning_effort "low" is the latency fix. This model is a reasoning
         // model and spent most of a classification deliberating over a five-way
@@ -88,8 +89,8 @@ export async function classifyIssue(
         // outside this code, which is what the timeout note above is about.
         reasoning_effort: "low",
         // temperature 0 is not a latency setting. It fixes a label instability
-        // that predates this change and that M8-1's two-runs-per-probe sample was
-        // too small to see: at the provider's default of 1.0 the criteria table's
+        // that predates this change and that an earlier two-runs-per-probe sample
+        // was too small to see: at the provider's default of 1.0 the criteria table's
         // High probe ("500 error when clicking Export Report") came back Medium
         // on 2 of 8 runs, at default effort and at low effort alike. At 0 it is 8
         // of 8, and the full ten-probe regression set is 30 of 30. A fixed

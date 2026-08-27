@@ -11,9 +11,10 @@ interface RequestWindow {
 interface RateLimitOptions {
   max: number;
   // Builds the 429 message, so each limiter names the action it actually counts.
-  // The submission limiter promises a number of tickets per hour, and M5-5's
-  // ordering decision rests on that promise being true; a second limiter reusing
-  // that wording on an endpoint that creates no ticket would make it false.
+  // The submission limiter promises a number of tickets per hour, and the
+  // ordering of middleware in the create chain rests on that promise being
+  // true; a second limiter reusing that wording on an endpoint that creates no
+  // ticket would make it false.
   describeLimit: (max: number) => string;
 }
 
@@ -22,12 +23,11 @@ interface RateLimitOptions {
 // own Map, so the two limits are independent by construction rather than by
 // remembering to key them apart.
 //
-// In-memory by design, per architecture.md section 6.3: fine for the single
-// backend instance this project runs, and a known simplification rather than an
-// oversight. Two consequences worth being explicit about, both recorded in
-// docs/security.md: the counts reset whenever the process restarts, and a second
-// instance would keep its own separate counts, so the effective limit would
-// double.
+// In-memory by design: fine for the single backend instance this project runs,
+// and a known simplification rather than an oversight. Two consequences worth
+// being explicit about: the counts reset whenever the process restarts, and a
+// second instance would keep its own separate counts, so the effective limit
+// would double.
 export function createRateLimiter({ max, describeLimit }: RateLimitOptions) {
   const windows = new Map<string, RequestWindow>();
 

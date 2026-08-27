@@ -6,7 +6,7 @@ import { classifyController } from "../controllers/classify.controller";
 
 const router = Router();
 
-// Same order as the create chain, and for the same reasons (M5-5). auth first
+// Same order as the create chain, and for the same reasons. auth first
 // because the limiter keys on a verified identity and throws without one.
 // Validation before the limiter because a request rejected as too long never
 // became a suggestion request and must not spend the user's quota; the check

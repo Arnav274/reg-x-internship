@@ -11,8 +11,8 @@ import { env } from "../config/env";
 // impersonation.
 //
 // The values match the mock previously hardcoded in the widget's
-// useAuthContext, so tickets created before and after M5-2 stay attributable to
-// the same user.
+// useAuthContext, so tickets stay attributable to the same user whether they
+// were created before this endpoint existed or after.
 const DEV_IDENTITY = {
   username: "johndoe",
   email: "johndoe@example.com",
