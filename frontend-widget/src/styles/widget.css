@@ -24,7 +24,24 @@
 
 /* ---------------------------------------------------------------- launcher */
 
+/*
+  Fixed rather than static: the widget's container is appended as the last
+  child of `body` (src/index.tsx), so a static launcher renders whereever that
+  puts it in document flow, below the fold on any page taller than the
+  viewport. Fixed positioning removes it from flow entirely, so it stays
+  reachable regardless of page height or scroll position, with no change
+  needed to where the container is mounted.
+
+  z-index sits one below the modal overlay's 2147483000 (same stacking
+  neighbourhood, so both remain above ordinary host-page content, and the
+  overlay still wins when the modal is open) rather than an arbitrary small
+  number that a host page's own z-index could outrank.
+*/
 .tw-launch {
+  position: fixed;
+  right: var(--tk-5);
+  bottom: var(--tk-5);
+  z-index: 2147482999;
   font: inherit;
   font-weight: 600;
   color: var(--tk-surface);
@@ -32,6 +49,7 @@
   border: 1px solid var(--tk-accent);
   border-radius: var(--tk-r);
   padding: var(--tk-2) var(--tk-4);
+  box-shadow: var(--tk-lift);
   cursor: pointer;
 }
 
