@@ -172,6 +172,8 @@ startup whenever it is enabled.
 ## Known limitations
 
 These are real gaps in the current state of the project, not caveats.
+[SECURITY-REVIEW.md](SECURITY-REVIEW.md) works through every security and non-functional requirement
+in full, including the ones that are not met and the measurements behind them.
 
 **Migrations apply on a fresh volume only.** `docker-compose.yml` mounts `backend/src/db/migrations`
 into `/docker-entrypoint-initdb.d`, and Postgres runs the files there only on the *first*
