@@ -1,4 +1,8 @@
-# AI Ticketing System
+# Ticket Triage Widget
+
+Built during a fintech internship, from a brief set by the team. The architecture, the data model
+and the security work are mine, and the history runs milestone by milestone from `milestone-m0`
+through `milestone-m6`.
 
 An embeddable feedback/ticketing widget for logged-in users of an existing product. It auto-captures
 who the user is and which page they're on, uses an AI model to suggest a category
@@ -45,8 +49,9 @@ A ticket makes this round trip:
 5. `GET /api/v1/tickets` reads them back with optional product, category and date-range filters. The
    admin page is a thin client over that endpoint.
 6. Every ticket carries a lifecycle status of `open`, `in progress` or `resolved`, starting at `open`.
-   `PATCH /api/v1/tickets/:ticket_id/status` changes it. There is no control for this in the admin
-   page yet, so today it is an API-only capability.
+   `PATCH /api/v1/tickets/:ticket_id/status` changes it. The admin page exposes this as a dropdown in
+   each row of the table; changing it calls the endpoint directly and the row reflects the new status
+   immediately, with no page reload.
 
 The username and email written to a ticket are always taken from the verified JWT, never from the
 request body, so a client cannot file a ticket as somebody else.
@@ -117,7 +122,17 @@ embeddable widget bundle (`dist/index.html` and one JS asset) and none of these 
 
 ## Demo walkthrough
 
-No screenshots are committed, so this is the whole loop in prose:
+![The widget open on the Analytics Hub page, with the category pre-filled to High and labelled AI suggested](screenshots/widget-ai-suggestion.png)
+
+*The widget on a product page. The username, email and product name are read from the token and the
+URL rather than typed. The category shown is the model's suggestion, and the dropdown stays editable.*
+
+![The admin table, with the AI suggestion column beside the category the user chose](screenshots/admin-ai-suggestion-column.png)
+
+*The admin view. AI SUGGESTION sits next to CATEGORY, so a suggestion the user overrode shows up as
+a mismatch between the two columns. "AI off" marks tickets submitted with AI mode unticked.*
+
+The whole loop, step by step:
 
 1. Open `http://localhost:5173/analytics-hub` and click **Report an Issue**. The form shows
    "Submitting as: johndoe (johndoe@example.com)", taken from the token rather than typed, and
@@ -131,11 +146,14 @@ No screenshots are committed, so this is the whole loop in prose:
 4. Click **Submit**. The form confirms with "Ticket submitted successfully."
 5. Untick **AI mode** and submit a second ticket. The dropdown becomes a plain manual selector and no
    classification request is made at all.
-6. Open `http://localhost:5173/admin`. Both tickets are listed, newest first. The AI suggestion
-   column shows the suggested category for the first and "AI off" for the second. Narrow the table
-   with the product, category and date filters; each one maps onto a query parameter of
-   `GET /api/v1/tickets`.
-7. To see the same data from the other side, open a different product page such as
+6. Open `http://localhost:5173/admin`. Both tickets are listed, newest first, with a summary panel
+   above the table showing bar counts by product and by category for whatever the current filters
+   match. The AI suggestion column shows the suggested category for the first and "AI off" for the
+   second. Narrow the table with the product, category and date filters; each one maps onto a query
+   parameter of `GET /api/v1/tickets`.
+7. Change one ticket's status using the dropdown in its row. The change is sent immediately via
+   `PATCH /api/v1/tickets/:ticket_id/status` and the row updates in place.
+8. To see the same data from the other side, open a different product page such as
    `http://localhost:5173/billing-engine`, submit a third ticket, and filter the admin table by
    Billing Engine.
 
