@@ -129,8 +129,10 @@ URL rather than typed. The category shown is the model's suggestion, and the dro
 
 ![The admin table, with the AI suggestion column beside the category the user chose](screenshots/admin-ai-suggestion-column.png)
 
-*The admin view. AI SUGGESTION sits next to CATEGORY, so a suggestion the user overrode shows up as
-a mismatch between the two columns. "AI off" marks tickets submitted with AI mode unticked.*
+*The admin view, filtered to a single day. AI SUGGESTION sits next to CATEGORY, so a suggestion the
+user overrode shows up as a mismatch between the two columns: see the User Portal row where the model
+said High and the user chose Medium. "AI off" marks a ticket submitted with AI mode unticked, and
+"AI: no suggestion" one where the classifier declined to guess rather than forcing a label.*
 
 The whole loop, step by step:
 
