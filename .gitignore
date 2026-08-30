@@ -6,3 +6,4 @@ dist/
 *.local.json
 .vite/
 repomix-output.*
+my-project-ai.md
